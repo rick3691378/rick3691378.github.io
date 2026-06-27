@@ -75,7 +75,6 @@
         </div>
     </div>
 
-    <!-- CBS Detail Modal -->
     <div id="cbs-detail-modal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm hidden">
         <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl flex flex-col max-h-[85vh]">
             <div class="bg-gradient-to-r from-slate-950 to-slate-900 px-6 py-4 border-b border-slate-880 flex items-center justify-between">
@@ -113,7 +112,6 @@
         </div>
     </div>
 
-    <!-- Header -->
     <header class="border-b border-slate-850 bg-slate-950/80 backdrop-blur-md sticky top-0 z-50 px-4 py-3">
         <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
             <div class="flex items-center space-x-3">
@@ -142,7 +140,6 @@
         </div>
     </header>
 
-    <!-- Tab Navigation -->
     <div class="bg-slate-950 border-b border-slate-850 px-4">
         <div class="max-w-7xl mx-auto flex flex-wrap gap-1 py-2">
             <button onclick="switchTab('tab-bulletin')" id="btn-tab-bulletin" class="flex-1 md:flex-initial px-4 py-2.5 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-all duration-200 bg-red-600 text-white shadow-md">
@@ -172,12 +169,8 @@
         </div>
     </div>
 
-    <!-- Main Content -->
     <main class="flex-1 max-w-7xl w-full mx-auto p-4 space-y-6">
 
-        <!-- ========================================== -->
-        <!-- TAB 1: NEWEST BULLETINS / ACTIVE TYPHOON   -->
-        <!-- ========================================== -->
         <section id="tab-bulletin" class="space-y-6 tab-content">
             <div class="bg-red-950/20 border border-red-500/20 rounded-xl p-4 flex items-center gap-3">
                 <div class="w-10 h-10 rounded-lg bg-red-950/40 border border-red-500/30 flex items-center justify-center text-red-500 flex-shrink-0">
@@ -194,7 +187,6 @@
             <div id="national-warning-container" class="transition-all duration-300">
             </div>
 
-            <!-- CWA Warning Lights Panel -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-950/50 border border-slate-850 p-4 rounded-2xl shadow-xl">
                 <div id="light-sea-warning" class="flex items-center justify-between p-4 rounded-xl border transition-all duration-300 bg-slate-900/40 border-slate-850 text-slate-500">
                     <div class="flex items-center gap-3">
@@ -219,7 +211,6 @@
                 </div>
             </div>
 
-            <!-- Typhoon Info Grid -->
             <div id="typhoon-info-grid" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
                 
                 <div class="lg:col-span-8 bg-slate-950/50 border border-slate-850 rounded-2xl overflow-hidden shadow-2xl backdrop-blur-sm flex flex-col">
@@ -339,9 +330,6 @@
         </section>
 
 
-        <!-- ========================================== -->
-        <!-- TAB 2: COUNTY WARNING STATUS GRID          -->
-        <!-- ========================================== -->
         <section id="tab-county" class="space-y-6 tab-content hidden">
             <div class="bg-slate-950 border border-slate-850 p-4 rounded-2xl flex items-center justify-between gap-4 flex-wrap">
                 <div class="flex items-center space-x-2">
@@ -421,9 +409,6 @@
 
         </section>
 
-        <!-- ========================================== -->
-        <!-- TAB 3: CWA WEATHER MAPS SECTION            -->
-        <!-- ========================================== -->
         <section id="tab-cwa" class="space-y-6 tab-content hidden">
             <div class="bg-slate-900/80 border border-blue-500/30 p-4 rounded-2xl flex items-center justify-between gap-4 flex-wrap glow-blue">
                 <div class="flex items-center space-x-2.5">
@@ -458,6 +443,10 @@
                             <button onclick="setCwaMainLayer('satellite')" id="btn-layer-satellite" class="w-full py-2.5 px-4 rounded-lg text-xs font-bold border text-left transition-all flex items-center justify-between bg-slate-900 border-slate-800 text-slate-400 hover:text-white">
                                 <span>🛰️ 東亞衛星雲圖 (原圖)</span>
                                 <i class="fa-solid fa-cloud"></i>
+                            </button>
+                            <button onclick="setCwaMainLayer('satellite_enhanced')" id="btn-layer-satellite_enhanced" class="w-full py-2.5 px-4 rounded-lg text-xs font-bold border text-left transition-all flex items-center justify-between bg-slate-900 border-slate-800 text-slate-400 hover:text-white">
+                                <span>🌈 色調強化衛星雲圖 (原圖)</span>
+                                <i class="fa-solid fa-cloud-bolt"></i>
                             </button>
                             <button onclick="setCwaMainLayer('typhoon_path')" id="btn-layer-typhoon_path" class="w-full py-2.5 px-4 rounded-lg text-xs font-bold border text-left transition-all flex items-center justify-between bg-slate-900 border-slate-800 text-slate-400 hover:text-white">
                                 <span>🌀 颱風預報路徑 (直連網頁)</span>
@@ -549,7 +538,6 @@
                         
                         <div class="p-0 flex flex-col flex-1 bg-slate-950 relative overflow-hidden select-none" id="cwa-media-wrapper" style="cursor: grab;">
                             
-                            <!-- Drag overlay to prevent iframe event stealing -->
                             <div id="cwa-drag-overlay" class="absolute inset-0 z-[25] hidden bg-transparent"></div>
 
                             <div id="cwa-loader" class="absolute inset-0 bg-slate-950 flex flex-col items-center justify-center space-y-3 z-30 pointer-events-none">
@@ -558,7 +546,6 @@
                                 <span class="text-xs text-slate-500">這保證了圖資的絕對即時與可操作性</span>
                             </div>
 
-                            <!-- Integrated Zoom Pan Container Target -->
                             <div id="cwa-zoom-target" class="w-full h-full absolute inset-0 z-10 flex items-center justify-center">
                                 <iframe id="cwa-main-iframe" src="" title="CWA Data Viewer" class="w-full h-full border-0 hidden"></iframe>
 
@@ -592,9 +579,6 @@
 
         </section>
         
-        <!-- ========================================== -->
-        <!-- TAB 4: CWA REAL-TIME STATION RANKINGS      -->
-        <!-- ========================================== -->
         <section id="tab-obs" class="space-y-6 tab-content hidden">
             <div class="bg-slate-900/80 border border-yellow-500/30 p-4 rounded-2xl flex items-center justify-between gap-4 flex-wrap glow-yellow">
                 <div class="flex items-center space-x-2.5">
@@ -615,9 +599,6 @@
             </div>
         </section>
 
-        <!-- ========================================== -->
-        <!-- TAB 5: CELL BROADCAST (CBS) LIVE ALERTS    -->
-        <!-- ========================================== -->
         <section id="tab-cbs" class="space-y-6 tab-content hidden">
             <div class="bg-slate-900/80 border border-orange-500/30 p-4 rounded-2xl flex items-center justify-between gap-4 flex-wrap glow-orange">
                 <div class="flex items-center space-x-2.5 flex-1 min-w-[280px]">
@@ -735,9 +716,6 @@
 
         </section>
 
-        <!-- ========================================== -->
-        <!-- TAB 6: SYSTEM POLICIES & LAWS              -->
-        <!-- ========================================== -->
         <section id="tab-system" class="space-y-6 tab-content hidden">
             <div class="bg-slate-950/50 border border-slate-850 rounded-2xl p-6 md:p-8 shadow-2xl space-y-8">
                 
@@ -920,7 +898,6 @@
 
     </main>
 
-    <!-- Footer -->
     <footer class="border-t border-slate-850 bg-slate-950 py-6 px-4 mt-12 text-center">
         <div class="max-w-7xl mx-auto space-y-2">
             <p class="text-xs text-slate-500 font-bold tracking-wider uppercase">TTMC TYPHOON MONITORING CENTRE (民間自主防災監測機構)</p>
@@ -1627,6 +1604,7 @@
         const CWA_URLS = {
             radar: { type: 'image', url: "https://www.cwa.gov.tw/Data/radar/CV1_3600.png", title: "📡 台灣地區即時雷達合成回波圖", source: "https://www.cwa.gov.tw/V8/C/W/OBS_Radar.html", desc: "抓取官方高解析原圖。藍色表微量雲雨，黃橙色表對流雲帶，紅色紫色為極強回波。您可透過左側拉桿、滾動滑鼠滾輪或捏合螢幕放大，按住滑鼠直接滑動拖移檢視防情細節。" },
             satellite: { type: 'image', url: "https://www.cwa.gov.tw/Data/satellite/LCC_IR1_CR_2750/LCC_IR1_CR_2750.jpg", title: "🛰️ 東亞彩色紅外線衛星雲圖", source: "https://www.cwa.gov.tw/V8/C/W/OBS_Sat.html", desc: "抓取官方高解析原圖。白亮厚實處表示雲層發展旺盛，常伴隨深層對流與劇烈降雨。您可透過左側拉桿、滾動滑鼠滾輪或捏合螢幕放大，按住滑鼠直接滑動拖移檢視防情細節。" },
+            satellite_enhanced: { type: 'image', url: "https://www.cwa.gov.tw/Data/satellite/LCC_IR1_MB_2750/LCC_IR1_MB_2750.jpg", title: "🌈 色調強化衛星雲圖", source: "https://www.cwa.gov.tw/V8/C/W/OBS_Sat.html?ts=1", desc: "抓取官方高解析原圖。利用色調強化技術突顯對流層頂部的極低溫區域（如紅色、紫色乃至黑色），可快速辨識颱風眼牆與強烈對流胞。" },
             typhoon_path: { type: 'iframe', url: "https://www.cwa.gov.tw/V8/C/P/Typhoon/TY_NEWS.html", title: "🌀 CWA 颱風預報路徑", source: "https://www.cwa.gov.tw/V8/C/P/Typhoon/TY_NEWS.html", desc: "官方颱風預報網頁直連。若目前無颱風，頁面將由氣象署安全顯示無資料，徹底解決破圖問題。" },
             typhoon_warning: { type: 'iframe', url: "https://www.cwa.gov.tw/V8/C/P/Typhoon/TY_WARN.html", title: "🚨 CWA 海上陸上颱風警報單", source: "https://www.cwa.gov.tw/V8/C/P/Typhoon/TY_WARN.html", desc: "官方海陸警戒區網頁直連。未發布警報時將顯示無資訊。" },
             rain_observe: { type: 'iframe', url: "https://www.cwa.gov.tw/V8/C/P/Rainfall/Rainfall_QZJ.html", title: "☔ 全台累積雨量觀測 (可自由調節)", source: "https://www.cwa.gov.tw/V8/C/P/Rainfall/Rainfall_QZJ.html", desc: "官方觀測雨量網頁直連。您可直接在下方網頁內自由切換今日累積、昨日累積或前日累積等間距圖層。" },
@@ -1673,7 +1651,7 @@
             currentCwaLayer = layerKey;
             
             const btnGroups = [
-                'radar', 'satellite', 'typhoon_path', 'typhoon_warning',
+                'radar', 'satellite', 'satellite_enhanced', 'typhoon_path', 'typhoon_warning',
                 'rain_observe', 'qpf_forecast'
             ];
 
