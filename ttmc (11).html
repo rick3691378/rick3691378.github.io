@@ -1,0 +1,2289 @@
+<!DOCTYPE html>
+<html lang="zh-TW" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TTMC 颱風監測中心 - 民間自主防情監測網</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght=300;400;500;600;700;800&family=Noto+Sans+TC:wght=300;400;500;700;900&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'Noto Sans TC', 'sans-serif'],
+                    },
+                    colors: {
+                        slate: {
+                            850: '#141b2d',
+                            950: '#070a13',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #070a13;
+            color: #f3f4f6;
+            font-family: 'Inter', 'Noto Sans TC', sans-serif;
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #070a13;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1f2937;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #374151;
+        }
+        /* Color Glow effects */
+        .glow-blue { box-shadow: 0 0 15px rgba(59, 130, 246, 0.15); }
+        .glow-yellow { box-shadow: 0 0 15px rgba(234, 179, 8, 0.15); }
+        .glow-orange { box-shadow: 0 0 15px rgba(249, 115, 22, 0.15); }
+        .glow-red { box-shadow: 0 0 15px rgba(239, 68, 68, 0.2); }
+        .glow-purple { box-shadow: 0 0 15px rgba(168, 85, 247, 0.25); }
+        .glow-black { box-shadow: 0 0 20px rgba(0, 0, 0, 0.8); border: 1px solid rgba(239, 68, 68, 0.3); }
+        
+        /* Meteorological Image transition classes */
+        .weather-img {
+            transition: filter 0.15s ease-out;
+        }
+        /* Smooth transform origins for zoom target */
+        #cwa-zoom-target {
+            transition: transform 0.1s cubic-bezier(0.25, 1, 0.5, 1), filter 0.15s ease-out;
+            transform-origin: center center;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col antialiased selection:bg-red-500 selection:text-white">
+
+    <div id="toast-message-box" class="fixed top-5 right-5 z-[999] transform translate-y-[-20px] opacity-0 transition-all duration-300 pointer-events-none">
+        <div class="bg-slate-900 border border-orange-500/80 rounded-xl px-4 py-3 shadow-2xl flex items-center gap-3">
+            <span class="w-2.5 h-2.5 rounded-full bg-orange-500 animate-ping"></span>
+            <span id="toast-text" class="text-xs font-bold text-slate-100">通知</span>
+        </div>
+    </div>
+
+    <div id="cbs-detail-modal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm hidden">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl flex flex-col max-h-[85vh]">
+            <div class="bg-gradient-to-r from-slate-950 to-slate-900 px-6 py-4 border-b border-slate-880 flex items-center justify-between">
+                <span id="modal-badge" class="text-[10px] font-black px-2.5 py-1 rounded tracking-wide border bg-red-600 text-white border-red-500">CBS 國家級警報</span>
+                <button onclick="closeCbsModal()" class="text-slate-400 hover:text-white transition-colors">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <div class="p-6 overflow-y-auto space-y-5">
+                <h3 id="modal-title" class="text-xl font-black text-white leading-snug">警報標題</h3>
+                <div class="bg-slate-950/50 p-4 rounded-xl border border-slate-850 space-y-2.5 text-xs">
+                    <div class="flex justify-between items-center text-slate-400">
+                        <span class="font-bold"><i class="fa-solid fa-building-columns mr-1"></i> 發布機關</span>
+                        <span id="modal-author" class="font-bold text-slate-200">--</span>
+                    </div>
+                    <div class="flex justify-between items-center text-slate-400">
+                        <span class="font-bold"><i class="fa-regular fa-clock mr-1"></i> 發布時間</span>
+                        <span id="modal-time" class="font-mono text-slate-200">--</span>
+                    </div>
+                </div>
+                <div class="space-y-2">
+                    <span class="text-slate-400 text-xs font-bold block"><i class="fa-solid fa-quote-left text-orange-500 mr-1"></i> 詳細示警內容</span>
+                    <div class="bg-slate-950/40 p-4 rounded-xl border border-slate-850">
+                        <p id="modal-summary" class="text-sm text-slate-200 leading-relaxed font-medium whitespace-pre-line">--</p>
+                    </div>
+                </div>
+                <div id="modal-action-box" class="p-4 rounded-xl bg-orange-950/25 border border-orange-500/30 text-xs text-orange-300 leading-relaxed space-y-1">
+                </div>
+            </div>
+            <div class="bg-slate-950 px-6 py-4 border-t border-slate-800 flex justify-end gap-2">
+                <button onclick="closeCbsModal()" class="bg-slate-900 border border-slate-800 hover:bg-slate-850 hover:border-slate-700 text-slate-300 font-bold py-2.5 px-5 rounded-xl text-xs transition-all">
+                    關閉視窗
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <header class="border-b border-slate-850 bg-slate-950/80 backdrop-blur-md sticky top-0 z-50 px-4 py-3">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="flex items-center space-x-3">
+                <div class="relative flex items-center justify-center w-10 h-10 bg-gradient-to-br from-red-600 via-orange-500 to-blue-600 rounded-xl shadow-lg animate-spin-slow">
+                    <i class="fa-solid fa-wind text-white text-lg"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="bg-red-600 text-white text-[10px] font-black px-1.5 py-0.5 rounded tracking-wide">民間機構</span>
+                        <h1 class="text-lg font-black tracking-wider text-white">TTMC 颱風監測中心</h1>
+                    </div>
+                    <p class="text-slate-400 text-xs tracking-tight">TTMC Typhoon Monitoring Centre • 民間自主防情與防災監測機構</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-4 flex-wrap justify-center">
+                <div id="global-warning-badge" class="px-3.5 py-1.5 rounded-full text-xs font-bold flex items-center gap-2 transition-all duration-300">
+                </div>
+
+                <div class="bg-slate-900/90 border border-slate-800 px-3 py-1.5 rounded-lg flex items-center gap-2 text-xs">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span class="text-slate-400 font-semibold">系統時間:</span>
+                    <span id="current-clock" class="text-slate-200 font-mono tracking-wider font-bold">----/--/-- --:--:--</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="bg-slate-950 border-b border-slate-850 px-4">
+        <div class="max-w-7xl mx-auto flex flex-wrap gap-1 py-2">
+            <button onclick="switchTab('tab-bulletin')" id="btn-tab-bulletin" class="flex-1 md:flex-initial px-4 py-2.5 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-all duration-200 bg-red-600 text-white shadow-md">
+                <i class="fa-solid fa-bullhorn text-xs"></i>
+                <span>最新風雨警報</span>
+            </button>
+            <button onclick="switchTab('tab-county')" id="btn-tab-county" class="flex-1 md:flex-initial px-4 py-2.5 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-all duration-200 text-slate-400 hover:text-slate-200 hover:bg-slate-900/60">
+                <i class="fa-solid fa-map-pin text-xs"></i>
+                <span>各縣市風球看板</span>
+            </button>
+            <button onclick="switchTab('tab-cwa')" id="btn-tab-cwa" class="flex-1 md:flex-initial px-4 py-2.5 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-all duration-200 text-slate-400 hover:text-slate-200 hover:bg-slate-900/60">
+                <i class="fa-solid fa-satellite text-xs text-blue-500"></i>
+                <span>即時氣象圖資 (CWA)</span>
+            </button>
+            <button onclick="switchTab('tab-obs')" id="btn-tab-obs" class="flex-1 md:flex-initial px-4 py-2.5 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-all duration-200 text-slate-400 hover:text-slate-200 hover:bg-slate-900/60">
+                <i class="fa-solid fa-ranking-star text-xs text-yellow-500"></i>
+                <span>CWA 測站排名</span>
+            </button>
+            <button onclick="switchTab('tab-cbs')" id="btn-tab-cbs" class="flex-1 md:flex-initial px-4 py-2.5 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-all duration-200 text-slate-400 hover:text-slate-200 hover:bg-slate-900/60">
+                <i class="fa-solid fa-triangle-exclamation text-xs text-orange-500"></i>
+                <span>災防告警 (即時資料)</span>
+            </button>
+            <button onclick="switchTab('tab-system')" id="btn-tab-system" class="flex-1 md:flex-initial px-4 py-2.5 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-all duration-200 text-slate-400 hover:text-slate-200 hover:bg-slate-900/60">
+                <i class="fa-solid fa-scale-balanced text-xs"></i>
+                <span>TTMC 規章制度</span>
+            </button>
+        </div>
+    </div>
+
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 space-y-6">
+
+        <section id="tab-bulletin" class="space-y-6 tab-content">
+            <div class="bg-red-950/20 border border-red-500/20 rounded-xl p-4 flex items-center gap-3">
+                <div class="w-10 h-10 rounded-lg bg-red-950/40 border border-red-500/30 flex items-center justify-center text-red-500 flex-shrink-0">
+                    <i class="fa-solid fa-triangle-exclamation animate-pulse text-lg"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <span class="text-red-400 text-xs font-bold block tracking-wider uppercase">TTMC監測中心公告</span>
+                    <p id="marquee-text" class="text-sm text-slate-200 font-medium truncate">
+                        -- 系統資料載入中 --
+                    </p>
+                </div>
+            </div>
+
+            <div id="national-warning-container" class="transition-all duration-300">
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-950/50 border border-slate-850 p-4 rounded-2xl shadow-xl">
+                <div id="light-sea-warning" class="flex items-center justify-between p-4 rounded-xl border transition-all duration-300 bg-slate-900/40 border-slate-850 text-slate-500">
+                    <div class="flex items-center gap-3">
+                        <span id="light-sea-dot" class="w-3.5 h-3.5 rounded-full bg-slate-800"></span>
+                        <div>
+                            <span class="text-xs text-slate-400 font-bold block mb-0.5">🌊 CWA 海上颱風警報監測燈</span>
+                            <span id="light-sea-status" class="text-[11px] font-black uppercase tracking-wide">偵測中</span>
+                        </div>
+                    </div>
+                    <div class="text-xl opacity-85"><i class="fa-solid fa-water"></i></div>
+                </div>
+
+                <div id="light-land-warning" class="flex items-center justify-between p-4 rounded-xl border transition-all duration-300 bg-slate-900/40 border-slate-800 text-slate-500">
+                    <div class="flex items-center gap-3">
+                        <span id="light-land-dot" class="w-3.5 h-3.5 rounded-full bg-slate-800"></span>
+                        <div>
+                            <span class="text-xs text-slate-400 font-bold block mb-0.5">⛰️ CWA 陸上颱風警報監測燈</span>
+                            <span id="light-land-status" class="text-[11px] font-black uppercase tracking-wide">偵測中</span>
+                        </div>
+                    </div>
+                    <div class="text-xl opacity-85"><i class="fa-solid fa-mountain"></i></div>
+                </div>
+            </div>
+
+            <div id="typhoon-info-grid" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                
+                <div class="lg:col-span-8 bg-slate-950/50 border border-slate-850 rounded-2xl overflow-hidden shadow-2xl backdrop-blur-sm flex flex-col">
+                    <div class="bg-gradient-to-r from-slate-900 to-slate-950 px-6 py-4 border-b border-slate-850 flex items-center justify-between">
+                        <div class="flex items-center space-x-2.5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping"></span>
+                            <h3 class="font-bold text-sm text-slate-200">🌀 活躍颱風現況 (Typhoon Advisory)</h3>
+                        </div>
+                        <span id="advisory-publish-time" class="text-xs text-slate-400 font-mono">發布時間: ----/--/-- --:--</span>
+                    </div>
+
+                    <div class="p-6 flex-1 space-y-6">
+                        <div class="flex flex-col gap-4 pb-6 border-b border-slate-850/80">
+                            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                <div>
+                                    <div class="flex items-center gap-3 mb-1">
+                                        <h2 id="typhoon-name" class="text-3xl md:text-4xl font-black text-white tracking-wide">---</h2>
+                                        <span id="typhoon-id-badge" class="bg-slate-900 border border-slate-700 text-slate-300 font-mono text-xs px-2 py-0.5 rounded font-bold">----</span>
+                                    </div>
+                                    <p class="text-sm text-slate-400 font-semibold" id="typhoon-intensity-subtitle">TTMC 等級系統分級中</p>
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-2">
+                                <div class="bg-slate-900/60 border border-slate-880 px-3 py-3 rounded-xl text-center flex flex-col justify-center">
+                                    <span class="text-slate-400 text-[10px] font-bold block mb-1">颱風強度</span>
+                                    <span id="typhoon-cwa-intensity" class="text-yellow-400 font-black text-xl">---</span>
+                                </div>
+                                <div class="bg-red-950/20 border border-red-500/20 px-3 py-3 rounded-xl text-center flex flex-col justify-center">
+                                    <span class="text-slate-400 text-[10px] font-bold block mb-1">中心最高風速</span>
+                                    <div>
+                                        <span id="typhoon-wind" class="text-red-400 font-mono font-black text-xl">--.-</span>
+                                        <span class="text-[10px] text-slate-500 font-bold ml-0.5">m/s</span>
+                                    </div>
+                                </div>
+                                <div class="bg-slate-900/60 border border-slate-880 px-3 py-3 rounded-xl text-center flex flex-col justify-center">
+                                    <span class="text-slate-400 text-[10px] font-bold block mb-1">暴風七級半徑</span>
+                                    <div>
+                                        <span id="typhoon-radius" class="text-blue-400 font-mono font-black text-xl">---</span>
+                                        <span class="text-[10px] text-slate-500 font-bold ml-0.5">公里</span>
+                                    </div>
+                                </div>
+                                <div class="bg-slate-900/60 border border-slate-880 px-3 py-3 rounded-xl text-center flex flex-col justify-center">
+                                    <span class="text-slate-400 text-[10px] font-bold block mb-1">暴風十級半徑</span>
+                                    <div>
+                                        <span id="typhoon-radius10" class="text-purple-400 font-mono font-black text-xl">---</span>
+                                        <span class="text-[10px] text-slate-500 font-bold ml-0.5">公里</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div class="bg-slate-900/40 p-4 rounded-xl border border-slate-850 flex items-start gap-3">
+                                <div class="w-8 h-8 rounded-lg bg-blue-950/30 border border-blue-500/20 flex items-center justify-center text-blue-400 flex-shrink-0">
+                                    <i class="fa-solid fa-compass"></i>
+                                </div>
+                                <div>
+                                    <span class="text-slate-400 text-[11px] font-bold block mb-0.5">當前中心位置</span>
+                                    <span id="typhoon-pos" class="text-sm font-semibold text-slate-200">----</span>
+                                </div>
+                            </div>
+
+                            <div class="bg-slate-900/40 p-4 rounded-xl border border-slate-850 flex items-start gap-3">
+                                <div class="w-8 h-8 rounded-lg bg-orange-950/30 border border-orange-500/20 flex items-center justify-center text-orange-400 flex-shrink-0">
+                                    <i class="fa-solid fa-arrow-trend-up"></i>
+                                </div>
+                                <div>
+                                    <span class="text-slate-400 text-[11px] font-bold block mb-0.5">當前移動動態</span>
+                                    <span id="typhoon-move" class="text-sm font-semibold text-slate-200">----</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-900/80 p-5 rounded-xl border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div class="space-y-1">
+                                <span class="text-slate-400 text-[10px] font-bold block tracking-wider">⏳ 預警登陸 / 升格威脅倒數</span>
+                                <p id="countdown-desc" class="text-sm text-slate-200 font-semibold">--</p>
+                            </div>
+                            <div class="bg-slate-950 px-4 py-2.5 rounded-lg border border-slate-800 text-center md:text-right min-w-[140px]">
+                                <span class="text-slate-500 text-[9px] font-bold block uppercase tracking-wide">COUNTDOWN</span>
+                                <span id="countdown-timer" class="font-mono text-xl font-bold text-red-500">00:00:00</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-900/40 border-t border-slate-850 px-6 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <span class="text-xs text-slate-400">🚨 *本資料經由 TTMC 專業審議人員手動即時發布更新</span>
+                        <div class="text-xs text-slate-300 font-bold flex items-center gap-1.5">
+                            <i class="fa-regular fa-clock text-slate-400"></i>
+                            <span>預計下次更新: </span>
+                            <span id="next-update-time" class="font-mono text-red-400 font-semibold">--:--</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-4 bg-slate-950/50 border border-slate-850 rounded-2xl p-6 flex flex-col justify-between shadow-xl">
+                    <div class="space-y-4">
+                        <div class="flex items-center space-x-2 pb-3 border-b border-slate-850/80">
+                            <i class="fa-solid fa-quote-left text-red-500 text-sm"></i>
+                            <h4 class="font-bold text-sm text-slate-200">總體警報與防災策略說明</h4>
+                        </div>
+                        <div id="bulletin-detail-box" class="text-sm text-slate-300 leading-relaxed space-y-3 font-medium min-h-[160px]">
+                        </div>
+                    </div>
+
+                    <div class="pt-4 border-t border-slate-850 mt-4">
+                        <button onclick="switchTab('tab-county')" class="w-full bg-slate-900 border border-slate-800 hover:border-slate-700 hover:bg-slate-850 text-white font-bold py-3 px-4 rounded-xl text-xs flex items-center justify-center gap-2 transition-all duration-200">
+                            <span>切換至「各縣市風球看板」</span>
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+        </section>
+
+        <section id="tab-county" class="space-y-6 tab-content hidden">
+            <div class="bg-slate-950 border border-slate-850 p-4 rounded-2xl flex items-center justify-between gap-4 flex-wrap">
+                <div class="flex items-center space-x-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
+                    <span class="text-xs text-slate-300 font-semibold">點擊下方任一縣市，即可查閱該縣市「整體風球」或「細分預警區」之專屬指引。</span>
+                </div>
+                <div class="flex gap-2 flex-wrap">
+                    <span class="text-[10px] font-black px-2 py-0.5 rounded bg-blue-900/30 text-blue-400 border border-blue-500/20">BLUE 監測</span>
+                    <span class="text-[10px] font-black px-2 py-0.5 rounded bg-yellow-950/30 text-yellow-400 border border-yellow-500/20">YELLOW 警戒</span>
+                    <span class="text-[10px] font-black px-2 py-0.5 rounded bg-orange-950/30 text-orange-400 border border-orange-500/20">ORANGE 核心</span>
+                    <span class="text-[10px] font-black px-2 py-0.5 rounded bg-red-950/30 text-red-400 border border-red-500/20">RED 強制</span>
+                    <span class="text-[10px] font-black px-2 py-0.5 rounded bg-purple-950/30 text-purple-400 border border-purple-500/20">PURPLE 災害</span>
+                    <span class="text-[10px] font-black px-2 py-0.5 rounded bg-neutral-900 text-white border border-red-500/40">BLACK 生存</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                
+                <div class="lg:col-span-7 space-y-4">
+                    <div class="bg-slate-950/50 border border-slate-850 rounded-2xl p-5 shadow-xl">
+                        <div class="pb-3 border-b border-slate-850/80 mb-4 flex items-center justify-between">
+                            <span class="text-sm font-bold text-slate-200">📍 全國行政區劃快速查閱點</span>
+                            <span class="text-[10px] text-slate-400 bg-slate-900 border border-slate-800 px-2 py-0.5 rounded">22 縣市分區定調</span>
+                        </div>
+
+                        <div id="county-buttons-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-5">
+                    <div id="county-focus-card" class="bg-slate-950/50 border border-slate-850 rounded-2xl p-6 shadow-2xl backdrop-blur-sm space-y-6 min-h-[450px] flex flex-col justify-between">
+                        
+                        <div class="space-y-4">
+                            <div class="flex items-start justify-between gap-4">
+                                <div>
+                                    <h3 id="focus-county-name" class="text-2xl font-black text-white tracking-wide">-- 縣市</h3>
+                                    <span id="focus-county-type" class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-900 text-slate-400 border border-slate-800">未定</span>
+                                </div>
+                                <div id="focus-county-ball" class="w-14 h-14 rounded-full flex flex-col items-center justify-center font-black text-xs text-white border transition-all duration-300">
+                                    <span>--</span>
+                                </div>
+                            </div>
+
+                            <div id="subzone-selector-wrapper" class="hidden space-y-2 bg-slate-900/30 p-3 rounded-xl border border-slate-850">
+                                <span class="text-slate-400 text-[10px] font-bold block"><i class="fa-solid fa-layer-group text-red-500"></i> 本縣市採多預警分區，請選擇監測區域：</span>
+                                <div id="subzone-buttons-container" class="flex flex-wrap gap-1.5 max-h-[160px] overflow-y-auto pr-1">
+                                </div>
+                            </div>
+
+                            <div class="bg-slate-900/40 p-3.5 rounded-xl border border-slate-850">
+                                <span class="text-slate-400 text-[10px] font-bold block mb-1">🗺️ 涵蓋行政區劃</span>
+                                <p id="focus-districts-list" class="text-xs text-slate-300 font-medium leading-relaxed">
+                                    --
+                                </p>
+                            </div>
+
+                            <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-850">
+                                <span class="text-slate-400 text-[10px] font-bold block mb-1">📝 當前本區實況與預報備註</span>
+                                <p id="focus-county-note" class="text-sm text-slate-200 font-semibold leading-relaxed">
+                                    --
+                                </p>
+                            </div>
+                        </div>
+
+                        <div id="focus-emergency-guidelines" class="p-4 rounded-xl bg-slate-900/50 border border-slate-880 text-xs">
+                        </div>
+
+                        <div class="text-[10px] text-slate-500 text-right pt-3 border-t border-slate-900/80">
+                            *防救災決策仍請以各級地方政府官方宣佈停班停課資訊為最終依據。
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+
+        </section>
+
+        <section id="tab-cwa" class="space-y-6 tab-content hidden">
+            <div class="bg-slate-900/80 border border-blue-500/30 p-4 rounded-2xl flex items-center justify-between gap-4 flex-wrap glow-blue">
+                <div class="flex items-center space-x-2.5">
+                    <span class="w-2.5 h-2.5 rounded-full bg-blue-500 animate-ping"></span>
+                    <div>
+                        <span class="text-xs font-bold text-blue-400 block tracking-wide">中央氣象署 (CWA) 官方數據真實直連網</span>
+                        <span class="text-[11px] text-slate-300">本區採雙引擎架構：雷達/衛星抓取高畫質原圖，雨量/路徑採用官方網頁直連避開破圖問題。</span>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span id="cwa-refresh-countdown" class="text-xs font-mono font-bold bg-slate-950 px-3 py-1.5 rounded-lg text-emerald-400 border border-slate-800">10 分鐘自動重載: 10:00</span>
+                    <button onclick="forceRefreshCwa()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all duration-150">
+                        <i class="fa-solid fa-arrows-rotate" id="cwa-refresh-icon"></i>
+                        <span>手動擷取</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                
+                <div class="lg:col-span-4 space-y-6">
+                    
+                    <div class="bg-slate-950/60 border border-slate-850 rounded-2xl p-5 shadow-xl space-y-4">
+                        <div class="pb-2 border-b border-slate-850">
+                            <span class="text-sm font-bold text-slate-200"><i class="fa-solid fa-layer-group text-blue-500"></i> 圖層控制站</span>
+                        </div>
+                        <div class="flex flex-col gap-1.5">
+                            <button onclick="setCwaMainLayer('radar')" id="btn-layer-radar" class="w-full py-2.5 px-4 rounded-lg text-xs font-bold border text-left transition-all flex items-center justify-between bg-blue-600 text-white border-blue-500 shadow-md">
+                                <span>📡 雷達合成迴波圖 (原圖)</span>
+                                <i class="fa-solid fa-circle-check"></i>
+                            </button>
+                            <button onclick="setCwaMainLayer('satellite')" id="btn-layer-satellite" class="w-full py-2.5 px-4 rounded-lg text-xs font-bold border text-left transition-all flex items-center justify-between bg-slate-900 border-slate-800 text-slate-400 hover:text-white">
+                                <span>🛰️ 東亞衛星雲圖 (原圖)</span>
+                                <i class="fa-solid fa-cloud"></i>
+                            </button>
+                            <button onclick="setCwaMainLayer('satellite_enhanced')" id="btn-layer-satellite_enhanced" class="w-full py-2.5 px-4 rounded-lg text-xs font-bold border text-left transition-all flex items-center justify-between bg-slate-900 border-slate-800 text-slate-400 hover:text-white">
+                                <span>🌈 色調強化衛星雲圖 (原圖)</span>
+                                <i class="fa-solid fa-cloud-bolt"></i>
+                            </button>
+                            <button onclick="setCwaMainLayer('typhoon_path')" id="btn-layer-typhoon_path" class="w-full py-2.5 px-4 rounded-lg text-xs font-bold border text-left transition-all flex items-center justify-between bg-slate-900 border-slate-800 text-slate-400 hover:text-white">
+                                <span>🌀 颱風預報路徑 (直連網頁)</span>
+                                <i class="fa-solid fa-route"></i>
+                            </button>
+                            <button onclick="setCwaMainLayer('typhoon_warning')" id="btn-layer-typhoon_warning" class="w-full py-2.5 px-4 rounded-lg text-xs font-bold border text-left transition-all flex items-center justify-between bg-slate-900 border-slate-800 text-slate-400 hover:text-white">
+                                <span>🚨 海陸颱風警報單 (直連網頁)</span>
+                                <i class="fa-solid fa-circle-exclamation"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-950/60 border border-slate-850 rounded-2xl p-5 shadow-xl space-y-4">
+                        <div class="pb-2 border-b border-slate-850">
+                            <span class="text-sm font-bold text-slate-200"><i class="fa-solid fa-droplet text-blue-400"></i> 雨量與定量降水控制站</span>
+                        </div>
+                        
+                        <div class="space-y-2">
+                            <button onclick="setCwaMainLayer('rain_observe')" id="btn-layer-rain_observe" class="w-full py-2.5 px-4 rounded-lg text-xs font-bold border text-left transition-all flex items-center justify-between bg-slate-900 border-slate-800 text-slate-400 hover:text-white">
+                                <span>☔ 雨量觀測資料 (即時觀測)</span>
+                                <i class="fa-solid fa-cloud-showers-heavy"></i>
+                            </button>
+                            <button onclick="setCwaMainLayer('qpf_forecast')" id="btn-layer-qpf_forecast" class="w-full py-2.5 px-4 rounded-lg text-xs font-bold border text-left transition-all flex items-center justify-between bg-slate-900 border-slate-800 text-slate-400 hover:text-white">
+                                <span>🔮 定量降水預報 (QPF 預測)</span>
+                                <i class="fa-solid fa-chart-bar"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-950/60 border border-slate-850 rounded-2xl p-5 shadow-xl space-y-5">
+                        <div class="pb-3 border-b border-slate-850 flex items-center justify-between">
+                            <span class="text-sm font-bold text-slate-200"><i class="fa-solid fa-sliders text-blue-500"></i> 圖資精細度調節</span>
+                            <button onclick="resetCwaFilters()" class="text-[10px] text-slate-400 hover:text-slate-200 underline">恢復預設</button>
+                        </div>
+
+                        <div class="space-y-4 text-xs">
+                            <div>
+                                <div class="flex justify-between font-bold mb-1">
+                                    <span class="text-slate-400">🔍 局部細節縮放 (Zoom)</span>
+                                    <span id="lbl-cwa-zoom" class="font-mono text-blue-400">1.0x</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <button onclick="changeCwaZoom(-0.1)" class="bg-slate-900 border border-slate-800 hover:bg-slate-850 text-white font-mono font-bold w-8 h-8 rounded-lg flex items-center justify-center transition-all select-none">-</button>
+                                    <input id="rng-cwa-zoom" type="range" min="0.5" max="3.0" step="0.1" value="1.0" oninput="applyCwaFilters()" class="flex-1 accent-blue-500 bg-slate-900 rounded-lg appearance-none h-1.5 cursor-pointer">
+                                    <button onclick="changeCwaZoom(0.1)" class="bg-slate-900 border border-slate-800 hover:bg-slate-850 text-white font-mono font-bold w-8 h-8 rounded-lg flex items-center justify-center transition-all select-none">+</button>
+                                </div>
+                            </div>
+
+                            <div>
+                                <div class="flex justify-between font-bold mb-1">
+                                    <span class="text-slate-400">💡 顯示亮度 (Brightness)</span>
+                                    <span id="lbl-cwa-bright" class="font-mono text-blue-400">100%</span>
+                                </div>
+                                <input id="rng-cwa-bright" type="range" min="50" max="200" step="10" value="100" oninput="applyCwaFilters()" class="w-full accent-blue-500 bg-slate-900 rounded-lg appearance-none h-1.5 cursor-pointer">
+                            </div>
+
+                            <div class="bg-slate-900/50 p-3 rounded-xl border border-slate-850 text-[11px] text-slate-400 space-y-1">
+                                <p class="text-emerald-400 font-bold"><i class="fa-solid fa-circle-info"></i> 高階放大引擎 2.0 已啟用</p>
+                                <ul class="list-disc pl-4 space-y-0.5 text-slate-400">
+                                    <li>支援<b>滑鼠滾輪</b>或<b>手機雙指捏合</b>直接縮放</li>
+                                    <li><b>滑鼠按住拖曳</b>可在任意放大比例下流暢移動</li>
+                                    <li>在圖面上<b>滑鼠雙擊 (Double Click)</b> 可快速重置位移與比例</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-8 space-y-6">
+                    <div class="bg-slate-950/50 border border-slate-850 rounded-2xl overflow-hidden shadow-2xl flex flex-col min-h-[600px] lg:h-[800px]">
+                        <div class="bg-gradient-to-r from-slate-900 to-slate-950 px-6 py-4 border-b border-slate-850 flex flex-wrap items-center justify-between gap-3">
+                            <div class="flex items-center space-x-2.5">
+                                <span class="w-2.5 h-2.5 rounded-full bg-blue-500 animate-pulse"></span>
+                                <h3 id="cwa-title-display" class="font-bold text-sm text-slate-200">📡 雷達合成迴波圖</h3>
+                            </div>
+                            <div class="flex gap-4">
+                                <span id="cwa-iframe-hint" class="text-[11px] font-bold text-emerald-400 border border-emerald-500/30 bg-emerald-500/10 px-2 py-1 rounded hidden">
+                                    <i class="fa-solid fa-arrow-pointer"></i> 請直接在下方網頁內自由操作調節時段
+                                </span>
+                                <span id="cwa-image-hint" class="text-[11px] font-bold text-blue-400 border border-blue-500/30 bg-blue-500/10 px-2 py-1 rounded hidden">
+                                    <i class="fa-solid fa-magnifying-glass"></i> 原生高畫質直連圖資
+                                </span>
+                                <a id="cwa-source-link" href="https://www.cwa.gov.tw/V8/C/W/OBS_Radar.html" target="_blank" class="text-[11px] text-blue-400 hover:text-blue-300 font-bold flex items-center gap-1 bg-slate-900 px-2.5 py-1 rounded-md border border-slate-800">
+                                    <span>開啟獨立視窗</span>
+                                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                                </a>
+                            </div>
+                        </div>
+                        
+                        <div class="p-0 flex flex-col flex-1 bg-slate-950 relative overflow-hidden select-none" id="cwa-media-wrapper" style="cursor: grab;">
+                            
+                            <div id="cwa-drag-overlay" class="absolute inset-0 z-[25] hidden bg-transparent"></div>
+
+                            <div id="cwa-loader" class="absolute inset-0 bg-slate-950 flex flex-col items-center justify-center space-y-3 z-30 pointer-events-none">
+                                <i class="fa-solid fa-circle-notch animate-spin text-4xl text-blue-500"></i>
+                                <span class="text-sm font-bold text-slate-300">正在直接連線至交通部中央氣象署...</span>
+                                <span class="text-xs text-slate-500">這保證了圖資的絕對即時與可操作性</span>
+                            </div>
+
+                            <div id="cwa-zoom-target" class="w-full h-full absolute inset-0 z-10 flex items-center justify-center">
+                                <iframe id="cwa-main-iframe" src="" title="CWA Data Viewer" class="w-full h-full border-0 hidden"></iframe>
+
+                                <div id="cwa-img-container" class="w-full h-full flex items-center justify-center p-2 hidden">
+                                    <img id="cwa-main-image" src="" alt="CWA Data Image" class="max-w-full max-h-full object-contain rounded-lg shadow-2xl">
+                                </div>
+                            </div>
+
+                            <div id="cwa-fallback-panel" class="absolute inset-0 z-25 bg-slate-950 flex flex-col items-center justify-center p-6 hidden text-center space-y-4">
+                                <div class="w-16 h-16 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-500 text-3xl">
+                                    <i class="fa-solid fa-cloud-sun"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-white text-base">目前無圖資可顯示</h4>
+                                    <p class="text-xs text-slate-400 mt-2 max-w-sm mx-auto">可能目前無颱風活動，或氣象署伺服器連線受限。系統將自動在三分鐘後嘗試重載。</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-950/50 border border-slate-850 rounded-2xl p-6 shadow-xl space-y-3">
+                        <h4 class="font-bold text-xs text-blue-400 uppercase tracking-wider border-b border-slate-850 pb-2">圖資原樣 analysis 提示</h4>
+                        <p id="cwa-analysis-text" class="text-xs text-slate-300 leading-relaxed">
+                            請選擇上方圖層以顯示即時解讀...
+                        </p>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+        
+        <section id="tab-obs" class="space-y-6 tab-content hidden">
+            <div class="bg-slate-900/80 border border-yellow-500/30 p-4 rounded-2xl flex items-center justify-between gap-4 flex-wrap glow-yellow">
+                <div class="flex items-center space-x-2.5">
+                    <span class="w-2.5 h-2.5 rounded-full bg-yellow-500 animate-ping"></span>
+                    <div>
+                        <span class="text-xs font-bold text-yellow-400 block tracking-wide">中央氣象署 (CWA) 全台測站實時排名</span>
+                        <span class="text-[11px] text-slate-300">直連官方最高溫、最低溫、累積雨量、最大陣風等測站觀測排行。</span>
+                    </div>
+                </div>
+                <a href="https://www.cwa.gov.tw/V8/C/W/OBS_Top.html" target="_blank" class="bg-slate-900 hover:bg-slate-800 text-yellow-400 border border-yellow-500/30 font-bold text-xs px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all duration-150">
+                    <span>開啟獨立視窗</span>
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                </a>
+            </div>
+            
+            <div class="bg-slate-950/50 border border-slate-850 rounded-2xl overflow-hidden shadow-2xl h-[800px] relative w-full">
+                <iframe src="https://www.cwa.gov.tw/V8/C/W/OBS_Top.html" class="w-full h-full border-0 absolute inset-0 z-10" title="CWA 測站排名"></iframe>
+            </div>
+        </section>
+
+        <section id="tab-cbs" class="space-y-6 tab-content hidden">
+            <div class="bg-slate-900/80 border border-orange-500/30 p-4 rounded-2xl flex items-center justify-between gap-4 flex-wrap glow-orange">
+                <div class="flex items-center space-x-2.5 flex-1 min-w-[280px]">
+                    <span class="w-2.5 h-2.5 rounded-full bg-orange-500 animate-ping"></span>
+                    <div>
+                        <span class="text-xs font-bold text-orange-400 block tracking-wide">災防告警細胞廣播訊息 (CBS) 即時資訊發布架構</span>
+                        <span class="text-[11px] text-slate-300">本模組採雙核心架構：左側為標準 CAP 技術開發指標，右側為與 cbs.tw 同步之原生即時監控終端，支援即時篩選機制。</span>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span id="cbs-countdown-badge" class="text-xs font-mono font-bold bg-slate-950 px-3 py-1.5 rounded-lg text-orange-400 border border-slate-800">
+                        自動更新倒數: 180s
+                    </span>
+                    <button onclick="triggerManualCbsRefresh()" class="bg-orange-600 hover:bg-orange-700 text-white font-bold text-xs px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all duration-150">
+                        <i id="btn-refresh-cbs-header-icon" class="fa-solid fa-arrows-rotate"></i>
+                        <span>手動同步</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="bg-slate-950 border border-slate-850 p-4 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div class="flex items-center space-x-2">
+                    <span class="w-2 h-2 rounded-full bg-orange-500"></span>
+                    <span class="text-xs text-slate-300 font-semibold"><i class="fa-solid fa-filter text-orange-400 mr-1"></i> 即時過濾器：可精準比對使用者時間，篩選 3 小時內的國家細胞廣播警報。</span>
+                </div>
+                <div class="flex gap-1.5 self-end sm:self-auto bg-slate-900 p-1 rounded-xl border border-slate-800 shrink-0">
+                    <button onclick="setCbsFilterMode('all')" id="btn-cbs-filter-all" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all bg-orange-600 text-white shadow-md">
+                        📋 顯示所有警報 (7天內)
+                    </button>
+                    <button onclick="setCbsFilterMode('3hours')" id="btn-cbs-filter-3h" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-slate-200">
+                        ⚡ 僅篩選 3 小時內即時警報
+                    </button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <div class="lg:col-span-5 space-y-6">
+                    <div class="bg-slate-950/50 border border-slate-850 rounded-2xl p-6 shadow-xl space-y-4">
+                        <div class="pb-3 border-b border-slate-850">
+                            <h3 class="text-sm font-bold text-slate-200"><i class="fa-solid fa-rss text-orange-500 mr-1"></i> ATOM Feed 示警資料流規範</h3>
+                        </div>
+                        
+                        <p class="text-xs text-slate-300 leading-relaxed font-medium">
+                            本系統以 ATOM feed 顯示最新一則起回溯七天內的所有 CAP 示警。
+                        </p>
+                        
+                        <blockquote class="bg-slate-900/60 border-l-4 border-orange-500 p-3 rounded-r-xl text-xs text-slate-400 leading-relaxed">
+                            <strong>回溯機制範例：</strong><br>
+                            如最新一筆資料是在 2015 年 9 月 9 日發佈，在 ATOM feed 連結中即會顯示自 9 月 3 日至 9 月 9 日這段期間的所發佈的所有示警。
+                        </blockquote>
+
+                        <div class="space-y-1.5 pt-2">
+                            <h4 class="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+                                <i class="fa-solid fa-code text-blue-400 text-[11px]"></i>
+                                <span>工程與自動化開發下載指引</span>
+                            </h4>
+                            <p class="text-[11px] text-slate-400 leading-relaxed">
+                                若您使用的目的是希望下載到最新的示警，可以撰寫程式藉由 ATOM feed 中所提供的固定連結依時間序取得。當最新細胞廣播訊息發布後 <strong>30 秒內</strong>，本站即會自動同步更新 ATOM feed。
+                            </p>
+                        </div>
+
+                        <div class="space-y-1.5 pt-2">
+                            <h4 class="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+                                <i class="fa-solid fa-square-rss text-emerald-400 text-[11px]"></i>
+                                <span>RSS 閱讀器訂閱提示</span>
+                            </h4>
+                            <p class="text-[11px] text-slate-400 leading-relaxed">
+                                若您只希望取得最新的示警相關訊息，也可以使用 RSS 閱讀器，直接讀取 ATOM feed 連結網址（請使用下載的連結），如此可以接收最新示警訊息。
+                            </p>
+                        </div>
+
+                        <div class="pt-4 border-t border-slate-850 flex flex-col gap-2.5">
+                            <span class="text-[10px] text-slate-500 block font-bold">📡 快取下載節點端點 URL:</span>
+                            <div class="flex flex-col sm:flex-row gap-2">
+                                <a href="https://cbs.tw/files/rssatomfeed.xml" target="_blank" class="flex-1 bg-orange-600 hover:bg-orange-700 text-white font-bold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center gap-2 transition-all duration-150 shadow-md">
+                                    <i class="fa-solid fa-download"></i>
+                                    <span>下載連結：rssatomfeed.xml</span>
+                                </a>
+                                <button onclick="copyFeedUrlToClipboard(this)" class="bg-slate-900 border border-slate-800 hover:bg-slate-850 text-slate-300 font-bold py-2.5 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 transition-all">
+                                    <i class="fa-solid fa-copy"></i>
+                                    <span class="btn-copy-text">複製網址</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-7 flex flex-col space-y-4">
+                    <div class="bg-slate-950/50 border border-slate-850 rounded-2xl overflow-hidden shadow-2xl flex flex-col h-[650px] relative">
+                        <div class="bg-slate-900 px-4 py-3.5 border-b border-slate-850 flex items-center justify-between shrink-0">
+                            <div class="flex items-center space-x-2">
+                                <span id="cbs-status-dot" class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                <span id="cbs-status-text" class="text-xs font-bold text-slate-200">即時監控終端系統</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <a href="https://cbs.tw/alert" target="_blank" class="text-[11px] text-orange-400 bg-orange-950/20 hover:bg-orange-950/40 border border-orange-500/30 px-2.5 py-1 rounded-md flex items-center gap-1">
+                                    <span>開啟 cbs.tw/alert 獨立網頁</span>
+                                    <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i>
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-950 p-3 font-mono text-[10px] text-slate-400 border-b border-slate-850 shrink-0 h-[64px] overflow-y-auto leading-relaxed" id="cbs-log-container">
+                        </div>
+
+                        <div class="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-900/60" id="cbs-alerts-list">
+                            <div class="text-center py-12">
+                                <i class="fa-solid fa-circle-notch animate-spin text-orange-500 text-3xl mb-3"></i>
+                                <p class="text-xs text-slate-400">正在嘗試跨域拉取與解算 cbs.tw XML 封包...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <section id="tab-system" class="space-y-6 tab-content hidden">
+            <div class="bg-slate-950/50 border border-slate-850 rounded-2xl p-6 md:p-8 shadow-2xl space-y-8">
+                
+                <div class="border-b border-slate-850 pb-5">
+                    <h2 class="text-2xl font-black tracking-wide text-white flex items-center gap-3">
+                        <i class="fa-solid fa-file-shield text-red-500"></i>
+                        <span>TTMC 颱風監測中心：預警系統總規章</span>
+                    </h2>
+                    <p class="text-slate-400 text-xs mt-1">
+                        本章程作為民間自主防情災監測、風力等級自評、風球定義之科學指導與學術討論自律指引。
+                    </p>
+                </div>
+
+                <div class="space-y-4">
+                    <h3 class="text-lg font-bold text-red-400 border-l-4 border-red-500 pl-3">第一章：TTMC 颱風強度分級制度</h3>
+                    <p class="text-sm text-slate-300 leading-relaxed">
+                        本系統採用世界氣象組織（WMO）與台灣中央氣象署規範之 **「10分鐘平均風速 (m/s)」** 作為量測基準。
+                    </p>
+                    <div class="overflow-x-auto rounded-xl border border-slate-850">
+                        <table class="w-full text-left border-collapse text-xs md:text-sm">
+                            <thead>
+                                <tr class="bg-slate-900 text-slate-300 border-b border-slate-850">
+                                    <th class="p-3 font-bold">等級名稱</th>
+                                    <th class="p-3 font-bold">定義</th>
+                                    <th class="p-3 font-bold">持續風速 (m/s)</th>
+                                    <th class="p-3 font-bold">氣象特徵與預警意義</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-850 text-slate-300">
+                                <tr class="hover:bg-slate-900/40">
+                                    <td class="p-3 font-semibold text-blue-400">TTMC-1</td>
+                                    <td class="p-3">熱帶低氣壓 (TD)</td>
+                                    <td class="p-3 font-mono">17.1 以下</td>
+                                    <td class="p-3">系統開始醞釀，可能帶來局部降雨。</td>
+                                </tr>
+                                <tr class="hover:bg-slate-900/40">
+                                    <td class="p-3 font-semibold text-emerald-400">TTMC-2</td>
+                                    <td class="p-3">熱帶風暴 (TS)</td>
+                                    <td class="p-3 font-mono">17.2–24.4</td>
+                                    <td class="p-3">形成完整環流，海面風浪顯著增加。</td>
+                                </tr>
+                                <tr class="hover:bg-slate-900/40">
+                                    <td class="p-3 font-semibold text-yellow-400">TTMC-3</td>
+                                    <td class="p-3">強烈熱帶風暴 (STS)</td>
+                                    <td class="p-3 font-mono">24.5–32.6</td>
+                                    <td class="p-3">具備颱風結構，輕微災害風險浮現。</td>
+                                </tr>
+                                <tr class="hover:bg-slate-900/40">
+                                    <td class="p-3 font-semibold text-orange-400">TTMC-4</td>
+                                    <td class="p-3">中度颱風</td>
+                                    <td class="p-3 font-mono">32.7–41.4</td>
+                                    <td class="p-3">風雨明顯增強，可能造成區域性災情。</td>
+                                </tr>
+                                <tr class="hover:bg-slate-900/40">
+                                    <td class="p-3 font-semibold text-red-400">TTMC-5</td>
+                                    <td class="p-3">強烈颱風</td>
+                                    <td class="p-3 font-mono">41.5–50.9</td>
+                                    <td class="p-3">廣泛風雨，容易出現中度以上災害。</td>
+                                </tr>
+                                <tr class="hover:bg-slate-900/40">
+                                    <td class="p-3 font-semibold text-purple-400">TTMC-6</td>
+                                    <td class="p-3">強颱級颱風</td>
+                                    <td class="p-3 font-mono">51.0–60.9</td>
+                                    <td class="p-3">具大範圍災害風險，核心破壞力極強。</td>
+                                </tr>
+                                <tr class="hover:bg-slate-900/40">
+                                    <td class="p-3 font-semibold text-rose-500">TTMC-7</td>
+                                    <td class="p-3">超強颱風 (最高級)</td>
+                                    <td class="p-3 font-mono">61.0 以上</td>
+                                    <td class="p-3 font-black text-rose-400">歷史級毀滅性威脅，將引發極端重大災害。</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="space-y-3">
+                    <h3 class="text-lg font-bold text-red-400 border-l-4 border-red-500 pl-3">第二章：國家總體預警機制 (巨觀防線)</h3>
+                    <p class="text-sm text-slate-300 leading-relaxed">
+                        用於定調全台防颱階段，為地方縣市發布風球的最高指導原則。
+                    </p>
+                    <ul class="list-none pl-0 space-y-3.5 text-sm text-slate-300">
+                        <li class="bg-slate-900/40 p-3.5 rounded-xl border border-slate-850">
+                            <strong class="text-blue-400 flex items-center gap-1.5 mb-1 text-sm">
+                                <i class="fa-solid fa-water"></i>
+                                🌊 CWA 海上颱風警報
+                            </strong>
+                            預測七級暴風圈將於 <strong>24 小時內</strong> 侵入台灣鄰近海域。全台海域管制，海巡啟動勸離。
+                        </li>
+                        <li class="bg-slate-900/40 p-3.5 rounded-xl border border-slate-850">
+                            <strong class="text-orange-400 flex items-center gap-1.5 mb-1 text-sm">
+                                <i class="fa-solid fa-mountain"></i>
+                                ⛰ CWA 陸上颱風警報
+                            </strong>
+                            預測七級暴風圈將於 <strong>18 小時內</strong> 接觸台灣本島或離島陸地。各級災害應變中心開設。
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="space-y-3">
+                    <h3 class="text-lg font-bold text-red-400 border-l-4 border-red-500 pl-3">第三章：縣市顏色風球與預警連動系統</h3>
+                    <p class="text-sm text-slate-300 leading-relaxed">
+                        以「縣市」為發布單位，跳脫傳統死板的暴風圈距離限制。特別採用地理分區對應技術，將地形屏障、高地土石潛勢區、迎風面與背風面獨立為單一預警單位（如個別山地鄉鎮、沿海平原、都會中心等），進一步實施精準防颱調度。
+                    </p>
+                    <div class="overflow-x-auto rounded-xl border border-slate-850">
+                        <table class="w-full text-left border-collapse text-xs md:text-sm">
+                            <thead>
+                                <tr class="bg-slate-900 text-slate-300 border-b border-slate-850">
+                                    <th class="p-3 font-bold">顏色風球</th>
+                                    <th class="p-3 font-bold">基礎觸發標準 (路徑與暴風圈預測)</th>
+                                    <th class="p-3 font-bold">風球對應平地與山地實況</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-850 text-slate-300">
+                                <tr>
+                                    <td class="p-3 font-black text-blue-400">🟦 BLUE 潛在威脅</td>
+                                    <td class="p-3">【最低警戒線】路徑預報顯示對該區域構成潛在威脅；或外圍環流已造成零星降雨與微風。</td>
+                                    <td class="p-3">
+                                        <strong>平地：</strong>外圍環流稍有影響，出現零星陣雨與微風。<br>
+                                        <strong>山區：</strong>雲量顯著增多，局部山區開始出現間歇性小雨。
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="p-3 font-black text-yellow-400">🟨 YELLOW 外圍警戒</td>
+                                    <td class="p-3">七級風圈預計 <strong>24小時內</strong> 觸碰該特定區域。</td>
+                                    <td class="p-3">
+                                        <strong>平地：</strong>沿海與平原地區陣風明顯增強，間歇性陣雨頻率變高。<br>
+                                        <strong>山區：</strong>山區出現持續性降雨，高海拔地區陣風增強。
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="p-3 font-black text-orange-400">🟧 ORANGE 核心警戒</td>
+                                    <td class="p-3">七級風圈 <strong>已觸陸</strong> 該特定區域。</td>
+                                    <td class="p-3">
+                                        <strong>平地：</strong>暴風圈正式觸陸，風雨顯著增強，部分低窪平地開始出現積水。<br>
+                                        <strong>山區：</strong>山區降雨達到豪雨等級，土石含水量漸趨飽和，開始出現零星落石與局部坍方。
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="p-3 font-black text-red-400">🟥 RED 強風豪雨</td>
+                                    <td class="p-3">十級風圈 <strong>已觸陸</strong> 該特定區域.</td>
+                                    <td class="p-3">
+                                        <strong>平地：</strong>十級風圈觸陸，遭遇持續性強風與狂暴大雨，市區易發生路樹倒塌、招牌掉落與嚴重淹水。<br>
+                                        <strong>山區：</strong>遭遇大豪雨直接侵襲，極易引發大規模土石流、山崩以及聯外道路中斷。
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="p-3 font-black text-purple-400">🟪 PURPLE 災害警戒</td>
+                                    <td class="p-3">颱風核心（眼牆外圍）直接侵襲該特定區域。</td>
+                                    <td class="p-3">
+                                        <strong>平地：</strong>眼牆核心直接橫掃，遭遇毀滅性強風與極端暴雨，市區基礎設施與建築物面臨結構性受損。<br>
+                                        <strong>山區：</strong>地形迎風面引發極端地形雨，雨量逼近歷史極值，溪水暴漲、山洪暴發，山體出現大面積崩塌。
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="p-3 font-black text-slate-100">⬛ BLACK 極端災害</td>
+                                    <td class="p-3">TTMC-7 極端颱風之風眼或眼牆直接侵入該特定區域。</td>
+                                    <td class="p-3">
+                                        <strong>平地：</strong>極端颱風中心直接貫穿，風雨突破歷史極限，市區全面出現結構性破壞、大範圍淹水與斷網斷電。<br>
+                                        <strong>山區：</strong>山區承受災難性、破壞性的極端降雨，引發全面性的大規模地質災變，山河地貌發生重大改變。
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="space-y-3">
+                    <h3 class="text-lg font-bold text-red-400 border-l-4 border-red-500 pl-3">第五章：系統運行邏輯與操作守則</h3>
+                    <ul class="list-disc pl-5 space-y-2 text-sm text-slate-300 leading-relaxed">
+                        <li><strong>無專屬命名原則：</strong> 為維持科學客觀與資料庫串接便利性，全面沿用世界氣象組織 (WMO) 國際命名與編號。</li>
+                        <li><strong>獨立山區安全編組：</strong> 對於複合預警縣市，所有山地行政區（如：烏來、復興、和平、阿里山、秀林、大同等）一律獨立於傳統的「山區」集合，作單一獨立預警發布，避免因大範圍地形概括而低估局部強對流與極端雨量風險。</li>
+                        <li><strong>階梯式降級保護：</strong> 颱風遠離時，嚴禁從 🟥 RED 突降至 🟦 BLUE。必須經由 🟧 ORANGE 緩衝，以防範「颱風尾（西南氣流）」之回馬槍災害。</li>
+                        <li><strong>預警倒數與地形地形播報：</strong> 發布警報時，必須明確告知民眾「預計升級時間」與「防範應變指引」，徹底發揮預警（Early Warning）價值。</li>
+                    </ul>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="border-t border-slate-850 bg-slate-950 py-6 px-4 mt-12 text-center">
+        <div class="max-w-7xl mx-auto space-y-2">
+            <p class="text-xs text-slate-500 font-bold tracking-wider uppercase">TTMC TYPHOON MONITORING CENTRE (民間自主防災監測機構)</p>
+            <p class="text-[11px] text-slate-600">本站為民間自主成立之氣象觀測及防災交流社群，非屬政府官方機構。本站所有分區警告及預警資訊僅供民防應急與學術討論參考。防災實際行動與停班課標準，請務必以中華民國交通部中央氣象署及各級地方政府官方發布之防情資訊為唯一最終依歸。</p>
+        </div>
+    </footer>
+
+    <script>
+        // ==========================================
+        // 🎛️ 後台資料手動設定區 (TTMC Admin Dashboard Data)
+        // ==========================================
+        const TTMC_DATA = {
+            activeWarning: "無", 
+            systemLifecycle: "NONE", 
+            publishTime: "2026/06/25 18:30",
+            nextUpdateTime: "2026/06/26 09:00",
+            marqueeAdvisory: "【常態監測】目前西北太平洋及南海海域無活躍之熱帶氣旋（颱風）發展。台灣各地天氣維持常態，請留意中央氣象署每日例行天氣預報。",
+            bulletinStrategyText: `
+                目前台灣周遭海域並無 any 熱帶性低氣壓或颱風發展。
+                <br><br>
+                <strong>當前天氣概況與防護方針:</strong>
+                <ol class="list-decimal pl-5 space-y-1 mt-2 text-xs">
+                    <li>各地維持常態天氣作息，午後請留意山區局部短暫雷陣雨。</li>
+                    <li>TTMC 系統維持藍色（BLUE）常態監測層級。</li>
+                    <li>所有縣市「山區」已細分解編，轉化為精密方位山區預警區（如西南山區、阿里山山區等），能精準避免「一體概括」導致的安全盲區。</li>
+                </ol>
+            `,
+            typhoon: {
+                nameZh: "---",
+                nameEn: "---",
+                id: "----",
+                ttmcLevel: "無",
+                cwaIntensity: "無", 
+                nationalWarning: "NONE", // 可設定為 "NONE"、"SEA"、"LAND"、"BOTH"
+                seaWarningActive: false, // 🌊 手動單獨控制【海上警報燈號】(true: 警戒中 / false: 常態準備)
+                landWarningActive: false, // ⛰️ 手動單獨控制【陸上警報燈號】(true: 警戒中 / false: 常態準備)
+                centerWind: "--.-",
+                radius7: "---",
+                radius10: "---", 
+                position: "---",
+                movement: "---",
+                countdownTargetDesc: "無活躍氣旋",
+                countdownTargetTime: ""
+            },
+            counties: {
+                "基隆市": { isComposite: false, color: "BLUE", districts: "基隆市全區", note: "維持常態氣象觀測。" },
+                "臺北市": { isComposite: false, color: "BLUE", districts: "臺北市全區", note: "維持常態氣象觀測。" },
+                "新北市": {
+                    isComposite: true,
+                    subZones: {
+                        "北區 (北海岸/林口)": { color: "BLUE", districts: "淡水、三芝、石門、金山、萬里、八里、林口", note: "維持常態氣象觀測。" },
+                        "中區 (盆地都會)": { color: "BLUE", districts: "板橋、三重、中和、永和、新莊、蘆洲、五股、泰山", note: "維持常態氣象觀測。" },
+                        "南區 (大漢溪/新店溪)": { color: "BLUE", districts: "新店、深坑、石碇、土城、樹林、鶯歌", note: "維持常態氣象觀測。" },
+                        "東區 (東北角/汐止)": { color: "BLUE", districts: "汐止、瑞芳、貢寮、雙溪、平溪", note: "維持常態氣象觀測。" },
+                        "西南山區": { color: "BLUE", districts: "三峽區、烏來區", note: "維持常態氣象觀測，嚴密監控河道溢流。" },
+                        "東南山區": { color: "BLUE", districts: "坪林區", note: "維持常態氣象觀測，密切注意北宜高架段陣風。" }
+                    }
+                },
+                "桃園市": {
+                    isComposite: true,
+                    subZones: {
+                        "北區 (沿海台地)": { color: "BLUE", districts: "大園、蘆竹、觀音、新屋", note: "維持常態氣象觀測。" },
+                        "text": "大園、蘆竹、觀音、新屋",
+                        "中區": { color: "BLUE", districts: "桃園、中壢、平鎮、八德", note: "維持常態氣象觀測。" },
+                        "南區 (近山丘陵)": { color: "BLUE", districts: "楊梅、龜山、龍潭、大溪", note: "維持常態氣象觀測。" },
+                        "復興山區": { color: "BLUE", districts: "復興區全境", note: "維持常態氣象觀測，防範邊坡零星落石。" }
+                    }
+                },
+                "新竹市": { isComposite: false, color: "BLUE", districts: "新竹市全區", note: "維持常態氣象觀測。" },
+                "新竹縣": {
+                    isComposite: true,
+                    subZones: {
+                        "北區": { color: "BLUE", districts: "竹北、新豐、湖口", note: "維持常態氣象觀測。" },
+                        "text": "竹北、新豐、湖口",
+                        "中區": { color: "BLUE", districts: "新埔、關西、芎林", note: "維持常態氣象觀測。" },
+                        "南區": { color: "BLUE", districts: "竹東、橫山、北埔、寶山、峨眉", note: "維持常態氣象觀測。" },
+                        "北部山區": { color: "BLUE", districts: "尖石鄉全境", note: "維持常態氣象觀測，注意山區午後局部陣雨。" },
+                        "南部山區": { color: "BLUE", districts: "五峰鄉全境", note: "維持常態氣象觀測，山區聯外道路暢通。" }
+                    }
+                },
+                "苗栗縣": {
+                    isComposite: true,
+                    subZones: {
+                        "北區": { color: "BLUE", districts: "竹南、頭份、造橋、三灣", note: "維持常態氣象觀測。" },
+                        "中區": { color: "BLUE", districts: "苗栗、後龍、頭屋、公館、西湖", note: "維持常態氣象觀測。" },
+                        "南區": { color: "BLUE", districts: "通霄、苑裡、銅鑼、三義、大湖、卓蘭", note: "維持常態氣象觀測。" },
+                        "北部山區": { color: "BLUE", districts: "南庄鄉、獅潭鄉", note: "維持常態氣象觀測，巡檢景區安全。" },
+                        "南部山區": { color: "BLUE", districts: "泰安鄉全境", note: "維持常態氣象觀測，監控溫泉區地質動態。" }
+                    }
+                },
+                "臺中市": {
+                    isComposite: true,
+                    subZones: {
+                        "北區 (海線)": { color: "BLUE", districts: "大甲、大安、清水、梧棲、沙鹿、龍井、大肚", note: "維持常態氣象觀測。" },
+                        "中區 (盆地都會核心)": { color: "BLUE", districts: "中區、東區、南區、西區、北區、北屯、西屯、南屯、大雅、神岡、潭子", note: "維持常態氣象觀測。" },
+                        "南區 (屯區/近山)": { color: "BLUE", districts: "太平、大里、霧峰、烏日", note: "維持常態氣象觀測。" },
+                        "東區 (山城)": { color: "BLUE", districts: "豐原、后里、石岡、東勢、新社", note: "維持常態氣象觀測。" },
+                        "和平山區": { color: "BLUE", districts: "和平區全境", note: "維持常態氣象觀測，嚴密注意中橫路段及梨山路況。" }
+                    }
+                },
+                "彰化縣": {
+                    isComposite: true,
+                    subZones: {
+                        "北區": { color: "BLUE", districts: "彰化、和美、伸港、線西、鹿港、花壇、秀水", note: "維持常態氣象觀測。" },
+                        "中區": { color: "BLUE", districts: "員林、大村、埔心、溪湖、福興、芳苑、埔鹽", note: "維持常態氣象觀測。" },
+                        "南區": { color: "BLUE", districts: "田中、社頭、二水、北斗、二林、埤頭、溪州、竹塘、田尾、大城", note: "維持常態氣象觀測。" }
+                    }
+                },
+                "南投縣": {
+                    isComposite: true,
+                    subZones: {
+                        "北區": { color: "BLUE", districts: "草屯、國姓、埔里", note: "維持常態氣象觀測。" },
+                        "中區": { color: "BLUE", districts: "南投、名間、中寮", note: "維持常態氣象觀測。" },
+                        "南區": { color: "BLUE", districts: "竹山、鹿谷、集集、水里", note: "維持常態氣象觀測。" },
+                        "北部南投山區": { color: "BLUE", districts: "仁愛鄉、魚池鄉", note: "維持常態氣象觀測，留意合歡山台14甲線大氣觀測。" },
+                        "南部南投山區": { color: "BLUE", districts: "信義鄉全境", note: "維持常態氣象觀測，特別注意新中橫沿線及郡大林道路網。" }
+                    }
+                },
+                "雲林縣": {
+                    isComposite: true,
+                    subZones: {
+                        "北區": { color: "BLUE", districts: "麥寮、崙背、二崙、西螺", note: "維持常態氣象觀測。" },
+                        "中區": { color: "BLUE", districts: "臺西、褒忠、土庫、虎尾、莿桐、林內、斗六", note: "維持常態氣象觀測。" },
+                        "南區": { color: "BLUE", districts: "四湖、口湖、水林、元長、北港、大埤、斗南", note: "維持常態氣象觀測。" },
+                        "古坑山區": { color: "BLUE", districts: "古坑鄉全境", note: "維持常態氣象觀測，防範草嶺山區土石鬆動。" }
+                    }
+                },
+                "嘉義市": { isComposite: false, color: "BLUE", districts: "嘉義市全區", note: "維持常態氣象觀測。" },
+                "嘉義縣": {
+                    isComposite: true,
+                    subZones: {
+                        "北區": { color: "BLUE", districts: "大林、溪口、新港、民雄、六腳", note: "維持常態氣象觀測。" },
+                        "text": "大林、溪口、新港、民雄、六腳",
+                        "中區": { color: "BLUE", districts: "太保、朴子、東石、水上、鹿草", note: "維持常態氣象觀測。" },
+                        "南區": { color: "BLUE", districts: "布袋、義竹", note: "維持常態氣象觀測。" },
+                        "進階高地(阿里山山區)": { color: "BLUE", districts: "阿里山鄉、梅山鄉、竹崎鄉", note: "維持常態氣象觀測，注意阿里山森林鐵路行車指標。" },
+                        "南部南投山區": { color: "BLUE", districts: "信義鄉全境", note: "維持常態氣象觀測，特別注意新中橫沿線及郡大林道路網。" }
+                    }
+                },
+                "臺南市": {
+                    isComposite: true,
+                    subZones: {
+                        "北區 (溪北)": { color: "BLUE", districts: "新營、鹽水、白河、柳營、後壁、東山", note: "維持常態氣象觀測。" },
+                        "中區 (曾文/沿海)": { color: "BLUE", districts: "麻豆、下營、六甲、官田、大內、佳里、學甲、西港、七股、將軍、北門", note: "維持常態氣象觀測。" },
+                        "南區 (都會/溪南)": { color: "BLUE", districts: "中西區、東區、南區、北區、安平、安南、永康、仁德、歸仁、關廟、龍崎、新市、善化、安定、新化、山上", note: "維持常態氣象觀測。" },
+                        "北臺南山區": { color: "BLUE", districts: "楠西區、玉井區", note: "維持常態氣象觀測。" },
+                        "南臺南山區": { color: "BLUE", districts: "南化區、左鎮區", note: "維持常態氣象觀測，防範山線陡坡土石安全。" }
+                    }
+                },
+                "高雄市": {
+                    isComposite: true,
+                    subZones: {
+                        "北區 (沿海/北高雄)": { color: "BLUE", districts: "茄萣、湖內、路竹、阿蓮、岡山、彌陀、永安、梓官、橋頭、燕巢、田寮", note: "維持常態氣象觀測。" },
+                        "中區": { color: "BLUE", districts: "楠梓、左營、鼓山、三民、鹽埕、前金、新興、苓雅、前鎮、旗津、小港、鳳山、鳥松、仁武、大社", note: "維持常態氣象觀測。" },
+                        "南區 (南高雄)": { color: "BLUE", districts: "大寮、林園", note: "維持常態氣象觀測。" },
+                        "東區 (旗美)": { color: "BLUE", districts: "旗山、美濃、內門、杉林", note: "維持常態氣象觀測。" },
+                        "北高雄山區": { color: "BLUE", districts: "桃源區、那瑪夏區", note: "維持常態氣象觀測，嚴密戒備荖濃溪、南橫公路邊坡指標。" },
+                        "中高雄山區": { color: "BLUE", districts: "六龜區、茂林區", note: "維持常態氣象觀測。" },
+                        "南高雄山區": { color: "BLUE", districts: "甲仙區全境", note: "維持常態氣象觀測。" }
+                    }
+                },
+                "屏東縣": {
+                    isComposite: true,
+                    subZones: {
+                        "北區": { color: "BLUE", districts: "屏東、九如、里港、高樹、鹽埔、長治、麟洛", note: "維持常態氣象觀測。" },
+                        "中區": { color: "BLUE", districts: "萬丹、潮州、萬巒、內埔、竹田、新埤、崁頂、南州", note: "維持常態氣象觀測。" },
+                        "南區 (沿海)": { color: "BLUE", districts: "東港、林邊、佳冬、枋寮、琉球", note: "維持常態氣象觀測。" },
+                        "恆春半島": { color: "BLUE", districts: "恆春、車城、滿州、枋山", note: "維持常態氣象觀測。" },
+                        "北屏東山區": { color: "BLUE", districts: "三地門鄉、瑪家鄉、霧臺鄉", note: "維持常態氣象觀測，注意神山、台24線谷川大橋段。" },
+                        "中屏東山區": { color: "BLUE", districts: "泰武鄉、來義鄉", note: "維持常態氣象觀測，防範林邊溪上游暴漲。" },
+                        "南屏東山區": { color: "BLUE", districts: "春日鄉、獅子鄉、牡丹鄉", note: "維持常態氣象觀測，注意南迴公路、牡丹水庫洩洪廣播。" }
+                    }
+                },
+                "宜蘭縣": {
+                    isComposite: true,
+                    subZones: {
+                        "北區": { color: "BLUE", districts: "頭城、礁溪、壯圍", note: "維持常態氣象觀測。" },
+                        "中區": { color: "BLUE", districts: "宜蘭、員山", note: "維持常態氣象觀測。" },
+                        "南區": { color: "BLUE", districts: "羅東、五結、冬山、蘇澳", note: "維持常態氣象觀測。" },
+                        "北宜蘭山區": { color: "BLUE", districts: "大同鄉全境", note: "維持常態氣象觀測，注意中橫宜蘭支線、北橫東段路面完整。" },
+                        "南宜蘭山區": { color: "BLUE", districts: "南澳鄉全境", note: "維持常態氣象觀測，密切注意蘇花路廊防護狀態。" }
+                    }
+                },
+                "花蓮縣": {
+                    isComposite: true,
+                    subZones: {
+                        "北區": { color: "BLUE", districts: "花蓮市、新城、吉安、壽豐", note: "維持常態氣象觀測。" },
+                        "中區": { color: "BLUE", districts: "鳳林、光復、豐濱、瑞穗", note: "維持常態氣象觀測。" },
+                        "南區": { color: "BLUE", districts: "玉里、富里", note: "維持常態氣象觀測。" },
+                        "北部山區": { color: "BLUE", districts: "秀林鄉全境", note: "維持常態氣象觀測，加強太魯閣口與蘇花鐵公路段防洪準備。" },
+                        "中部山區": { color: "BLUE", districts: "萬榮鄉全境", note: "維持常態氣象觀測。" },
+                        "南部山區": { color: "BLUE", districts: "卓溪鄉全境", note: "維持常態氣象觀測。" }
+                    }
+                },
+                "臺東縣": {
+                    isComposite: true,
+                    subZones: {
+                        "北區 (東海岸)": { color: "BLUE", districts: "長濱、成功、東河", note: "維持常態氣象觀測。" },
+                        "text": "長濱、成功、東河",
+                        "中區 (縱谷及市區)": { color: "BLUE", districts: "臺東、卑南、鹿野、關山、池上", note: "維持常態氣象觀測。" },
+                        "南區 (南迴)": { color: "BLUE", districts: "太麻里、大武", note: "維持常態氣象觀測。" },
+                        "離島區": { color: "BLUE", districts: "綠島、蘭嶼", note: "維持常態氣象觀測。" },
+                        "北部山區": { color: "BLUE", districts: "延平鄉、海端鄉", note: "維持常態氣象觀測，留意南橫東段坍落風險。" },
+                        "南部山區": { color: "BLUE", districts: "金峰鄉、達仁鄉", note: "維持常態氣象觀測，加強高地水土潛勢監控。" }
+                    }
+                },
+                "澎湖縣": { isComposite: false, color: "BLUE", districts: "澎湖縣全區", note: "維持常態氣象觀測。" },
+                "金門縣": { isComposite: false, color: "BLUE", districts: "金門縣全區", note: "維持常態氣象觀測。" },
+                "連江縣": { isComposite: false, color: "BLUE", districts: "連江縣全區", note: "維持常態氣象觀測。" }
+            }
+        };
+
+        let currentFocusCounty = "臺北市";
+        let currentFocusSubZone = ""; 
+
+        const COLOR_SEVERITY = {
+            "BLUE": 1,
+            "YELLOW": 2,
+            "ORANGE": 3,
+            "RED": 4,
+            "PURPLE": 5,
+            "BLACK": 6
+        };
+
+        const COLOR_MAP = {
+            "BLUE": { bg: "bg-blue-600/10 border-blue-500/30 text-blue-400 hover:bg-blue-600/20", text: "BLUE 潛在監測", hex: "#3b82f6", badge: "bg-blue-600 text-white border-blue-500" },
+            "YELLOW": { bg: "bg-yellow-600/10 border-yellow-500/30 text-yellow-400 hover:bg-yellow-600/20", text: "YELLOW 外圍警戒", hex: "#eab308", badge: "bg-yellow-500 text-slate-950 border-yellow-400" },
+            "ORANGE": { bg: "bg-orange-600/10 border-orange-500/30 text-orange-400 hover:bg-orange-600/20", text: "ORANGE 核心警戒", hex: "#f97316", badge: "bg-orange-500 text-white border-orange-400" },
+            "RED": { bg: "bg-red-600/10 border-red-500/30 text-red-400 hover:bg-red-600/20", text: "RED 強風豪雨", hex: "#ef4444", badge: "bg-red-600 text-white border-red-500" },
+            "PURPLE": { bg: "bg-purple-600/10 border-purple-500/30 text-purple-400 hover:bg-purple-600/20", text: "PURPLE 災害警戒", hex: "#a855f7", badge: "bg-purple-600 text-white border-purple-500" },
+            "BLACK": { bg: "bg-neutral-900 border-red-500/30 text-rose-500 hover:bg-neutral-850", text: "BLACK 極端生存", hex: "#000000", badge: "bg-neutral-950 text-red-500 border-red-500" }
+        };
+
+        function getCountyMaxColor(countyName) {
+            const data = TTMC_DATA.counties[countyName];
+            if (!data) return "BLUE";
+            if (!data.isComposite) return data.color;
+
+            let maxSev = 0;
+            let maxColor = "BLUE";
+            Object.values(data.subZones).forEach(sub => {
+                const sev = COLOR_SEVERITY[sub.color] || 1;
+                if (sev > maxSev) {
+                    maxSev = sev;
+                    maxColor = sub.color;
+                }
+            });
+            return maxColor;
+        }
+
+        let timerInterval;
+
+        function initApp() {
+            const targetTime = new Date();
+            targetTime.setHours(targetTime.getHours() + 3);
+            targetTime.setMinutes(targetTime.getMinutes() + 42);
+            TTMC_DATA.typhoon.countdownTargetTime = targetTime.toISOString();
+
+            document.getElementById('marquee-text').innerHTML = TTMC_DATA.marqueeAdvisory;
+            document.getElementById('bulletin-detail-box').innerHTML = TTMC_DATA.bulletinStrategyText;
+            document.getElementById('advisory-publish-time').innerText = `發布時間: ${TTMC_DATA.publishTime}`;
+            document.getElementById('next-update-time').innerText = TTMC_DATA.nextUpdateTime;
+
+            const badgeEl = document.getElementById('global-warning-badge');
+            if (TTMC_DATA.activeWarning === "無") {
+                badgeEl.className = "px-3.5 py-1.5 rounded-full text-xs font-bold bg-slate-900 border border-slate-800 text-slate-400";
+                badgeEl.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400"></i> <span>常態安全監測中</span>`;
+            } else {
+                badgeEl.className = "px-3.5 py-1.5 rounded-full text-xs font-bold bg-red-950/40 border border-red-500/50 text-red-400 glow-red animate-pulse";
+                badgeEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> <span>${TTMC_DATA.activeWarning}</span>`;
+            }
+            
+            // ==========================================
+            // 🚨 國家總體預警機制 Banner 渲染邏輯
+            // ==========================================
+            const natWarningContainer = document.getElementById('national-warning-container');
+            const nwType = TTMC_DATA.typhoon.nationalWarning || "NONE";
+            
+            if (nwType === "LAND") {
+                natWarningContainer.className = "bg-orange-950/30 border border-orange-500/50 rounded-xl p-5 flex items-start gap-4 glow-orange";
+                natWarningContainer.innerHTML = `
+                    <div class="w-12 h-12 rounded-full bg-orange-500 flex items-center justify-center text-white text-xl flex-shrink-0 animate-pulse shadow-[0_0_15px_rgba(249,115,22,0.5)]"><i class="fa-solid fa-mountain"></i></div>
+                    <div>
+                        <span class="text-orange-400 text-[10px] font-black tracking-wider uppercase mb-1 block border border-orange-500/30 bg-orange-950/50 px-2 py-0.5 rounded w-fit">國家總體預警機制 (巨觀防線)</span>
+                        <h3 class="text-lg font-black text-white mb-1 tracking-wide">⛰ CWA 陸上颱風警報</h3>
+                        <p class="text-xs text-orange-200 font-medium leading-relaxed">預測七級暴風圈將於 <strong>18 小時內</strong> 接觸台灣本島或離島陸地。各級災害應變中心開設。</p>
+                    </div>
+                `;
+            } else if (nwType === "SEA") {
+                natWarningContainer.className = "bg-blue-950/30 border border-blue-500/50 rounded-xl p-5 flex items-start gap-4 glow-blue";
+                natWarningContainer.innerHTML = `
+                    <div class="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center text-white text-xl flex-shrink-0 animate-pulse shadow-[0_0_15px_rgba(59,130,246,0.5)]"><i class="fa-solid fa-water"></i></div>
+                    <div>
+                        <span class="text-blue-400 text-[10px] font-black tracking-wider uppercase mb-1 block border border-blue-500/30 bg-blue-950/50 px-2 py-0.5 rounded w-fit">國家總體預警機制 (巨觀防線)</span>
+                        <h3 class="text-lg font-black text-white mb-1 tracking-wide">🌊 CWA 海上颱風警報</h3>
+                        <p class="text-xs text-blue-200 font-medium leading-relaxed">預測七級暴風圈將於 <strong>24 小時內</strong> 侵入台灣鄰近海域。全台海域管制，海巡啟動勸離。</p>
+                    </div>
+                `;
+            } else if (nwType === "BOTH") {
+                natWarningContainer.className = "bg-red-950/30 border border-red-500/50 rounded-xl p-5 flex items-start gap-4 glow-red";
+                natWarningContainer.innerHTML = `
+                    <div class="w-12 h-12 rounded-full bg-red-600 flex items-center justify-center text-white text-xl flex-shrink-0 animate-pulse shadow-[0_0_15px_rgba(239,68,68,0.5)]"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                    <div>
+                        <span class="text-red-400 text-[10px] font-black tracking-wider uppercase mb-1 block border border-red-500/30 bg-red-950/50 px-2 py-0.5 rounded w-fit">國家總體預警機制 (巨觀防線)</span>
+                        <h3 class="text-lg font-black text-white mb-1 tracking-wide">🚨 CWA 海上陸上颱風警報</h3>
+                        <p class="text-xs text-red-200 font-medium leading-relaxed">預測七級暴風圈已同時侵入台灣鄰近海域並即將或已經接觸陸地。海陸全面警戒，嚴加防範。</p>
+                    </div>
+                `;
+            } else {
+                natWarningContainer.className = "bg-slate-900/60 border border-slate-800 rounded-xl p-4 flex items-center gap-3";
+                natWarningContainer.innerHTML = `
+                    <div class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-emerald-400 text-lg flex-shrink-0"><i class="fa-solid fa-shield-halved"></i></div>
+                    <div>
+                        <span class="text-slate-500 text-[10px] font-bold tracking-wider uppercase block mb-0.5">國家總體預警機制 (巨觀防線)</span>
+                        <h3 class="text-sm font-bold text-slate-300">🟢 目前無颱風警報，維持常態防護標準。</h3>
+                    </div>
+                `;
+            }
+
+            // ==========================================
+            // 🚨 海陸警報監測燈精準渲染系統 (後台布林與 nationalWarning 混合邏輯)
+            // ==========================================
+            const lightSea = document.getElementById('light-sea-warning');
+            const lightSeaDot = document.getElementById('light-sea-dot');
+            const lightSeaStatus = document.getElementById('light-sea-status');
+            const lightLand = document.getElementById('light-land-warning');
+            const lightLandDot = document.getElementById('light-land-dot');
+            const lightLandStatus = document.getElementById('light-land-status');
+
+            // 1. 海上警報判定：如果後台 seaWarningActive 布林明確設定，則以此為主；否則依照整體警報種類自動適配
+            const isSeaActive = (TTMC_DATA.typhoon.seaWarningActive !== undefined && TTMC_DATA.typhoon.seaWarningActive !== null)
+                ? TTMC_DATA.typhoon.seaWarningActive
+                : (nwType === "SEA" || nwType === "LAND" || nwType === "BOTH");
+
+            // 2. 陸上警報判定：如果後台 landWarningActive 布林明確設定，則以此為主；否則依照整體警報種類自動適配
+            const isLandActive = (TTMC_DATA.typhoon.landWarningActive !== undefined && TTMC_DATA.typhoon.landWarningActive !== null)
+                ? TTMC_DATA.typhoon.landWarningActive
+                : (nwType === "LAND" || nwType === "BOTH");
+
+            // 3. 渲染海上警報燈號
+            if (isSeaActive) {
+                if (lightSea) {
+                    lightSea.className = "flex items-center justify-between p-4 rounded-xl border transition-all duration-300 bg-blue-950/20 border-blue-500/50 text-blue-400 glow-blue";
+                }
+                if (lightSeaDot) {
+                    lightSeaDot.className = "w-3.5 h-3.5 rounded-full bg-blue-500 animate-ping";
+                }
+                if (lightSeaStatus) {
+                    lightSeaStatus.innerText = "已發布 • 警戒中";
+                }
+            } else {
+                if (lightSea) {
+                    lightSea.className = "flex items-center justify-between p-4 rounded-xl border transition-all duration-300 bg-slate-900/40 border-slate-850 text-slate-500";
+                }
+                if (lightSeaDot) {
+                    lightSeaDot.className = "w-3.5 h-3.5 rounded-full bg-slate-800";
+                }
+                if (lightSeaStatus) {
+                    lightSeaStatus.innerText = "未發布 • 常態準備";
+                }
+            }
+
+            // 4. 渲染陸上警報燈號
+            if (isLandActive) {
+                if (lightLand) {
+                    lightLand.className = "flex items-center justify-between p-4 rounded-xl border transition-all duration-300 bg-red-950/20 border-red-500/50 text-red-400 glow-red";
+                }
+                if (lightLandDot) {
+                    lightLandDot.className = "w-3.5 h-3.5 rounded-full bg-red-500 animate-ping";
+                }
+                if (lightLandStatus) {
+                    lightLandStatus.innerText = "已發布 • 警戒中";
+                }
+            } else {
+                if (lightLand) {
+                    lightLand.className = "flex items-center justify-between p-4 rounded-xl border transition-all duration-300 bg-slate-900/40 border-slate-850 text-slate-500";
+                }
+                if (lightLandDot) {
+                    lightLandDot.className = "w-3.5 h-3.5 rounded-full bg-slate-800";
+                }
+                if (lightLandStatus) {
+                    lightLandStatus.innerText = "未發布 • 常態準備";
+                }
+            }
+
+            document.getElementById('typhoon-name').innerText = TTMC_DATA.systemLifecycle !== "NONE" ? `${TTMC_DATA.typhoon.nameZh} (${TTMC_DATA.typhoon.nameEn})` : "無活躍氣旋";
+            document.getElementById('typhoon-id-badge').innerText = TTMC_DATA.systemLifecycle !== "NONE" ? `No. ${TTMC_DATA.typhoon.id}` : "SAFE";
+            document.getElementById('typhoon-intensity-subtitle').innerText = TTMC_DATA.systemLifecycle !== "NONE" ? `${TTMC_DATA.typhoon.ttmcLevel} (系統生命週期: ${TTMC_DATA.systemLifecycle})` : "目前無颱風威脅，維持常態監測";
+            
+            // 綁定強度與暴風半徑
+            document.getElementById('typhoon-cwa-intensity').innerText = TTMC_DATA.typhoon.cwaIntensity;
+            document.getElementById('typhoon-wind').innerText = TTMC_DATA.typhoon.centerWind;
+            document.getElementById('typhoon-radius').innerText = TTMC_DATA.typhoon.radius7;
+            document.getElementById('typhoon-radius10').innerText = TTMC_DATA.typhoon.radius10;
+            
+            document.getElementById('typhoon-pos').innerText = TTMC_DATA.typhoon.position;
+            document.getElementById('typhoon-move').innerText = TTMC_DATA.typhoon.movement;
+            document.getElementById('countdown-desc').innerText = TTMC_DATA.typhoon.countdownTargetDesc;
+
+            if (TTMC_DATA.systemLifecycle === "NONE") {
+                document.getElementById('countdown-timer').innerText = "--:--:--";
+                document.getElementById('countdown-timer').className = "font-mono text-xl font-bold text-slate-600";
+            } else {
+                startCountdown(TTMC_DATA.typhoon.countdownTargetTime);
+            }
+
+            buildCountyButtons();
+            selectCounty(currentFocusCounty);
+            
+            // 完美綁定媒體加載與異常處理事件
+            const cwaIframe = document.getElementById('cwa-main-iframe');
+            const cwaImage = document.getElementById('cwa-main-image');
+            if (cwaIframe) {
+                cwaIframe.onload = cwaMediaLoaded;
+            }
+            if (cwaImage) {
+                cwaImage.onload = cwaMediaLoaded;
+                cwaImage.onerror = cwaImageError;
+            }
+
+            initCwaSection();
+            initCbsAlerts();
+            initCwaPanAndZoom();
+        }
+
+        function updateClock() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            document.getElementById('current-clock').innerText = `${year}/${month}/${day} ${hours}:${minutes}:${seconds}`;
+        }
+
+        function startCountdown(targetTimeISO) {
+            const target = new Date(targetTimeISO).getTime();
+            if (isNaN(target)) return;
+
+            if (timerInterval) clearInterval(timerInterval);
+
+            function updateTimer() {
+                const now = new Date().getTime();
+                const distance = target - now;
+
+                if (distance < 0) {
+                    document.getElementById('countdown-timer').innerText = "已越警戒時效";
+                    clearInterval(timerInterval);
+                    return;
+                }
+
+                const hrs = Math.floor(distance / (1000 * 60 * 60));
+                const mins = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const secs = Math.floor((distance % (1000 * 60)) / 1000);
+
+                document.getElementById('countdown-timer').innerText = `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+            }
+
+            timerInterval = setInterval(updateTimer, 1000);
+            updateTimer();
+        }
+
+        function buildCountyButtons() {
+            const container = document.getElementById('county-buttons-grid');
+            container.innerHTML = "";
+
+            Object.keys(TTMC_DATA.counties).forEach(name => {
+                const data = TTMC_DATA.counties[name];
+                const maxColor = getCountyMaxColor(name);
+                const colData = COLOR_MAP[maxColor] || COLOR_MAP["BLUE"];
+                
+                const btn = document.createElement('button');
+                btn.id = `btn-county-${name}`;
+                btn.className = `p-3.5 rounded-xl border flex flex-col items-start gap-1 text-left transition-all duration-200 ${colData.bg}`;
+                btn.onclick = () => selectCounty(name);
+
+                const badgeHtml = data.isComposite 
+                    ? `<span class="text-[9px] bg-red-600/20 text-red-400 px-1 py-0.2 rounded border border-red-500/20 font-black">複合分區</span>` 
+                    : `<span class="text-[9px] bg-blue-600/10 text-blue-400 px-1 py-0.2 rounded border border-blue-500/10">單一全區</span>`;
+
+                btn.innerHTML = `
+                    <div class="flex items-center justify-between w-full gap-1">
+                        <span class="font-bold text-sm text-white">${name}</span>
+                        <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color: ${colData.hex};"></span>
+                    </div>
+                    <div class="flex items-center gap-1.5 w-full mt-0.5">
+                        ${badgeHtml}
+                        <span class="text-[9px] opacity-80 font-black tracking-wide">${maxColor} 級</span>
+                    </div>
+                `;
+                container.appendChild(btn);
+            });
+        }
+
+        function selectCounty(name) {
+            currentFocusCounty = name;
+
+            Object.keys(TTMC_DATA.counties).forEach(n => {
+                const btn = document.getElementById(`btn-county-${n}`);
+                if (btn) {
+                    if (n === name) {
+                        btn.classList.add('ring-2', 'ring-offset-2', 'ring-offset-slate-950', 'ring-white/80', 'scale-[1.02]');
+                    } else {
+                        btn.classList.remove('ring-2', 'ring-offset-2', 'ring-offset-slate-950', 'ring-white/80', 'scale-[1.02]');
+                    }
+                }
+            });
+
+            const data = TTMC_DATA.counties[name];
+            if (!data) return;
+
+            const typeBadge = document.getElementById('focus-county-type');
+            const subzoneWrapper = document.getElementById('subzone-selector-wrapper');
+
+            if (!data.isComposite) {
+                typeBadge.className = "text-[10px] font-bold px-2 py-0.5 rounded bg-blue-900/20 text-blue-400 border border-blue-500/20";
+                typeBadge.innerHTML = `<i class="fa-solid fa-bullseye"></i> 單一預警區 (全區發布)`;
+                subzoneWrapper.classList.add('hidden');
+
+                document.getElementById('focus-county-name').innerText = name;
+                document.getElementById('focus-districts-list').innerText = data.districts;
+                document.getElementById('focus-county-note').innerText = data.note;
+
+                const colData = COLOR_MAP[data.color] || COLOR_MAP["BLUE"];
+                const ball = document.getElementById('focus-county-ball');
+                ball.className = `w-14 h-14 rounded-full flex flex-col items-center justify-center font-black text-xs text-white border transition-all duration-300 ${colData.badge}`;
+                ball.innerHTML = `<span>${data.color}</span>`;
+
+                updateEmergencyGuidelines(data.color);
+            } else {
+                typeBadge.className = "text-[10px] font-bold px-2 py-0.5 rounded bg-red-950/20 text-red-400 border border-red-500/20 animate-pulse";
+                typeBadge.innerHTML = `<i class="fa-solid fa-signs-post"></i> 複合預警區 (精密方位分區)`;
+                subzoneWrapper.classList.remove('hidden');
+
+                const subContainer = document.getElementById('subzone-buttons-container');
+                subContainer.innerHTML = "";
+
+                const subZoneKeys = Object.keys(data.subZones);
+                currentFocusSubZone = subZoneKeys[0];
+
+                subZoneKeys.forEach(szName => {
+                    const szData = data.subZones[szName];
+                    const colData = COLOR_MAP[szData.color] || COLOR_MAP["BLUE"];
+
+                    const szBtn = document.createElement('button');
+                    szBtn.className = `px-2.5 py-1.5 rounded-lg text-[11px] font-bold border transition-all duration-150 flex items-center gap-1.5 bg-slate-900 border-slate-800 text-slate-300 hover:text-white`;
+                    szBtn.id = `btn-subzone-${szName}`;
+                    szBtn.onclick = () => selectSubZone(name, szName);
+                    szBtn.innerHTML = `
+                        <span class="w-2 h-2 rounded-full" style="background-color: ${colData.hex};"></span>
+                        <span>${szName}</span>
+                    `;
+                    subContainer.appendChild(szBtn);
+                });
+
+                selectSubZone(name, currentFocusSubZone);
+            }
+        }
+
+        function selectSubZone(countyName, subZoneName) {
+            currentFocusSubZone = subZoneName;
+            const countyData = TTMC_DATA.counties[countyName];
+            if (!countyData || !countyData.isComposite) return;
+
+            const szData = countyData.subZones[subZoneName];
+            if (!szData) return;
+
+            Object.keys(countyData.subZones).forEach(szName => {
+                const btn = document.getElementById(`btn-subzone-${szName}`);
+                if (btn) {
+                    if (szName === subZoneName) {
+                        btn.className = "px-2.5 py-1.5 rounded-lg text-[11px] font-black border transition-all duration-150 flex items-center gap-1.5 bg-slate-800 border-white text-white scale-[1.03]";
+                    } else {
+                        btn.className = "px-2.5 py-1.5 rounded-lg text-[11px] font-semibold border transition-all duration-150 flex items-center gap-1.5 bg-slate-900 border-slate-850 text-slate-400 hover:text-slate-200";
+                    }
+                }
+            });
+
+            document.getElementById('focus-county-name').innerText = `${countyName} - ${subZoneName}`;
+            document.getElementById('focus-districts-list').innerText = szData.districts;
+            document.getElementById('focus-county-note').innerText = szData.note;
+
+            const colData = COLOR_MAP[szData.color] || COLOR_MAP["BLUE"];
+            const ball = document.getElementById('focus-county-ball');
+            ball.className = `w-14 h-14 rounded-full flex flex-col items-center justify-center font-black text-xs text-white border transition-all duration-300 ${colData.badge}`;
+            ball.innerHTML = `<span>${colData.text.split(" ")[0]}</span>`;
+
+            updateEmergencyGuidelines(szData.color);
+        }
+
+        function updateEmergencyGuidelines(color) {
+            const el = document.getElementById('focus-emergency-guidelines');
+
+            if (color === 'BLACK') {
+                el.className = "p-5 rounded-xl bg-neutral-950 border border-red-500/40 text-sm shadow-lg shadow-red-950/30 space-y-3 animate-pulse";
+                el.innerHTML = `
+                    <div class="flex items-center space-x-2 text-rose-500 font-bold text-base">
+                        <i class="fa-solid fa-skull-crossbones animate-bounce"></i>
+                        <span>【⬛ BLACK 極端災害實況】</span>
+                    </div>
+                    <ul class="list-none pl-0 space-y-2 text-slate-300 text-xs leading-relaxed">
+                        <li>
+                            <strong class="text-white block mb-0.5"><i class="fa-solid fa-building text-blue-400 mr-1"></i> 平地實況：</strong>
+                            極端颱風中心直接貫穿，風雨突破歷史極限，市區全面出現結構性破壞、大範圍淹水與斷網斷電。
+                        </li>
+                        <li>
+                            <strong class="text-white block mb-0.5"><i class="fa-solid fa-mountain text-amber-500 mr-1"></i> 山區實況：</strong>
+                            山區承受災難性、破壞性的極端降雨，引發全面性的大規模地質災變，山河地貌發生重大改變。
+                        </li>
+                    </ul>
+                `;
+            } else if (color === 'PURPLE') {
+                el.className = "p-5 rounded-xl bg-purple-950/30 border border-purple-500/30 text-sm shadow-lg shadow-purple-900/20 space-y-3";
+                el.innerHTML = `
+                    <div class="flex items-center space-x-2 text-purple-400 font-bold text-base">
+                        <i class="fa-solid fa-triangle-exclamation animate-pulse"></i>
+                        <span>【🟪 PURPLE 災害警戒實況】</span>
+                    </div>
+                    <ul class="list-none pl-0 space-y-2 text-slate-300 text-xs leading-relaxed">
+                        <li>
+                            <strong class="text-white block mb-0.5"><i class="fa-solid fa-building text-blue-400 mr-1"></i> 平地實況：</strong>
+                            眼牆核心直接橫掃，遭遇毀滅性強風與極端暴雨，市區基礎設施與建築物面臨結構性受損。
+                        </li>
+                        <li>
+                            <strong class="text-white block mb-0.5"><i class="fa-solid fa-mountain text-amber-500 mr-1"></i> 山區實況：</strong>
+                            地形迎風面引發極端地形雨，雨量逼近歷史極值，溪水暴漲、山洪暴發，山體出現大面積崩塌。
+                        </li>
+                    </ul>
+                `;
+            } else if (color === 'RED') {
+                el.className = "p-5 rounded-xl bg-red-950/20 border border-red-500/30 text-sm shadow-lg shadow-red-900/20 space-y-3";
+                el.innerHTML = `
+                    <div class="flex items-center space-x-2 text-red-400 font-bold text-base">
+                        <i class="fa-solid fa-radiation"></i>
+                        <span>【🟥 RED 強風豪雨實況】</span>
+                    </div>
+                    <ul class="list-none pl-0 space-y-2 text-slate-300 text-xs leading-relaxed">
+                        <li>
+                            <strong class="text-white block mb-0.5"><i class="fa-solid fa-building text-blue-400 mr-1"></i> 平地實況：</strong>
+                            十級風圈觸陸，遭遇持續性強風與狂暴大雨，市區易發生路樹倒塌、招牌掉落與嚴重淹水。
+                        </li>
+                        <li>
+                            <strong class="text-white block mb-0.5"><i class="fa-solid fa-mountain text-amber-500 mr-1"></i> 山區實況：</strong>
+                            遭遇大豪雨直接侵襲，極易引發大規模土石流、山崩以及聯外道路中斷。
+                        </li>
+                    </ul>
+                `;
+            } else if (color === 'ORANGE') {
+                el.className = "p-5 rounded-xl bg-orange-950/20 border border-orange-500/30 text-sm shadow-lg shadow-orange-900/10 space-y-3";
+                el.innerHTML = `
+                    <div class="flex items-center space-x-2 text-orange-400 font-bold text-base">
+                        <i class="fa-solid fa-shield-cat"></i>
+                        <span>【🟧 ORANGE 核心警戒實況】</span>
+                    </div>
+                    <ul class="list-none pl-0 space-y-2 text-slate-300 text-xs leading-relaxed">
+                        <li>
+                            <strong class="text-white block mb-0.5"><i class="fa-solid fa-building text-blue-400 mr-1"></i> 平地實況：</strong>
+                            暴風圈正式觸陸，風雨顯著增強，部分低窪平地開始出現積水。
+                        </li>
+                        <li>
+                            <strong class="text-white block mb-0.5"><i class="fa-solid fa-mountain text-amber-500 mr-1"></i> 山區實況：</strong>
+                            山區降雨達到豪雨等級，土石含水量漸趨飽和，開始出現零星落石與局部坍方。
+                        </li>
+                    </ul>
+                `;
+            } else if (color === 'YELLOW') {
+                el.className = "p-5 rounded-xl bg-yellow-950/20 border border-yellow-500/30 text-sm shadow-lg shadow-yellow-900/10 space-y-3";
+                el.innerHTML = `
+                    <div class="flex items-center space-x-2 text-yellow-400 font-bold text-base">
+                        <i class="fa-solid fa-circle-exclamation"></i>
+                        <span>【🟨 YELLOW 外圍警戒實況】</span>
+                    </div>
+                    <ul class="list-none pl-0 space-y-2 text-slate-300 text-xs leading-relaxed">
+                        <li>
+                            <strong class="text-white block mb-0.5"><i class="fa-solid fa-building text-blue-400 mr-1"></i> 平地實況：</strong>
+                            沿海與平原地區陣風明顯增強，間歇性陣雨頻率變高。
+                        </li>
+                        <li>
+                            <strong class="text-white block mb-0.5"><i class="fa-solid fa-mountain text-amber-500 mr-1"></i> 山區實況：</strong>
+                            山區出現持續性降雨，高海拔地區陣風增強。
+                        </li>
+                    </ul>
+                `;
+            } else {
+                el.className = "p-5 rounded-xl bg-slate-900/60 border border-slate-850 text-sm space-y-3";
+                el.innerHTML = `
+                    <div class="flex items-center space-x-2 text-emerald-400 font-bold text-base">
+                        <i class="fa-solid fa-circle-check"></i>
+                        <span>【🟦 BLUE 潛在威脅實況】</span>
+                    </div>
+                    <ul class="list-none pl-0 space-y-2 text-slate-300 text-xs leading-relaxed">
+                        <li>
+                            <strong class="text-white block mb-0.5"><i class="fa-solid fa-building text-blue-400 mr-1"></i> 平地實況：</strong>
+                            外圍環流稍有影響，出現零星陣雨與微風。
+                        </li>
+                        <li>
+                            <strong class="text-white block mb-0.5"><i class="fa-solid fa-mountain text-amber-500 mr-1"></i> 山區實況：</strong>
+                            雲量顯著增多，局部山區開始出現間歇性小雨。
+                        </li>
+                    </ul>
+                `;
+            }
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => {
+                el.classList.add('hidden');
+            });
+            document.getElementById(tabId).classList.remove('hidden');
+
+            const tabs = ['bulletin', 'county', 'cwa', 'obs', 'cbs', 'system'];
+            tabs.forEach(t => {
+                const btn = document.getElementById(`btn-tab-${t}`);
+                if (btn) {
+                    if (`tab-${t}` === tabId) {
+                        btn.className = "flex-1 md:flex-initial px-4 py-2.5 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-all duration-200 bg-red-600 text-white shadow-md";
+                    } else {
+                        btn.className = "flex-1 md:flex-initial px-4 py-2.5 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-all duration-200 text-slate-400 hover:text-slate-200 hover:bg-slate-900/60";
+                    }
+                }
+            });
+        }
+
+
+        // ==========================================
+        // 🛰️ 中央氣象署 (CWA) 混合雙引擎圖資系統 (Hybrid Media Engine)
+        // ==========================================
+
+        let currentCwaLayer = 'radar';
+        let cwaTimerSeconds = 600; 
+        let cwaInterval;
+
+        // 位移與縮放全域座標狀態
+        let zoom = 1.0;
+        let panX = 0;
+        let panY = 0;
+
+        const CWA_URLS = {
+            radar: { type: 'image', url: "https://www.cwa.gov.tw/Data/radar/CV1_3600.png", title: "📡 台灣地區即時雷達合成回波圖", source: "https://www.cwa.gov.tw/V8/C/W/OBS_Radar.html", desc: "抓取官方高解析原圖。藍色表微量雲雨，黃橙色表對流雲帶，紅色紫色為極強回波。您可透過左側拉桿、滾動滑鼠滾輪或捏合螢幕放大，按住滑鼠直接滑動拖移檢視防情細節。" },
+            satellite: { type: 'image', url: "https://www.cwa.gov.tw/Data/satellite/LCC_IR1_CR_2750/LCC_IR1_CR_2750.jpg", title: "🛰️ 東亞彩色紅外線衛星雲圖", source: "https://www.cwa.gov.tw/V8/C/W/OBS_Sat.html", desc: "抓取官方高解析原圖。白亮厚實處表示雲層發展旺盛，常伴隨深層對流與劇烈降雨。您可透過左側拉桿、滾動滑鼠滾輪或捏合螢幕放大，按住滑鼠直接滑動拖移檢視防情細節。" },
+            satellite_enhanced: { type: 'image', url: "https://www.cwa.gov.tw/Data/satellite/LCC_IR1_MB_2750/LCC_IR1_MB_2750.jpg", title: "🌈 色調強化衛星雲圖", source: "https://www.cwa.gov.tw/V8/C/W/OBS_Sat.html?ts=1", desc: "抓取官方高解析原圖。利用色調強化技術突顯對流層頂部的極低溫區域（如紅色、紫色乃至黑色），可快速辨識颱風眼牆與強烈對流胞。" },
+            typhoon_path: { type: 'iframe', url: "https://www.cwa.gov.tw/V8/C/P/Typhoon/TY_NEWS.html", title: "🌀 CWA 颱風預報路徑", source: "https://www.cwa.gov.tw/V8/C/P/Typhoon/TY_NEWS.html", desc: "官方颱風預報網頁直連。若目前無颱風，頁面將由氣象署安全顯示無資料，徹底解決破圖問題。" },
+            typhoon_warning: { type: 'iframe', url: "https://www.cwa.gov.tw/V8/C/P/Typhoon/TY_WARN.html", title: "🚨 CWA 海上陸上颱風警報單", source: "https://www.cwa.gov.tw/V8/C/P/Typhoon/TY_WARN.html", desc: "官方海陸警戒區網頁直連。未發布警報時將顯示無資訊。" },
+            rain_observe: { type: 'iframe', url: "https://www.cwa.gov.tw/V8/C/P/Rainfall/Rainfall_QZJ.html", title: "☔ 全台累積雨量觀測 (可自由調節)", source: "https://www.cwa.gov.tw/V8/C/P/Rainfall/Rainfall_QZJ.html", desc: "官方觀測雨量網頁直連。您可直接在下方網頁內自由切換今日累積、昨日累積或前日累積等間距圖層。" },
+            qpf_forecast: { type: 'iframe', url: "https://www.cwa.gov.tw/V8/C/P/QPF.html", title: "🔮 CWA 定量降水預報 (QPF)", source: "https://www.cwa.gov.tw/V8/C/P/QPF.html", desc: "官方定量降水預報網頁直連。包含未來12/24小時及各時段降水預測區間，請直接在下方網頁內自由操作切換。" }
+        };
+
+        function initCwaSection() {
+            startCwaTimer();
+            renderCwaMedia();
+        }
+
+        function startCwaTimer() {
+            if (cwaInterval) clearInterval(cwaInterval);
+            cwaTimerSeconds = 600; 
+            updateCwaTimerDisplay();
+            
+            cwaInterval = setInterval(() => {
+                cwaTimerSeconds--;
+                if (cwaTimerSeconds <= 0) {
+                    forceRefreshCwa();
+                } else {
+                    updateCwaTimerDisplay();
+                }
+            }, 1000);
+        }
+
+        function updateCwaTimerDisplay() {
+            const m = Math.floor(cwaTimerSeconds / 60);
+            const s = cwaTimerSeconds % 60;
+            document.getElementById('cwa-refresh-countdown').innerText = `10 分鐘自動重載: ${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+        }
+
+        function forceRefreshCwa() {
+            const icon = document.getElementById('cwa-refresh-icon');
+            icon.classList.add('animate-spin');
+            setTimeout(() => icon.classList.remove('animate-spin'), 1000);
+            
+            cwaTimerSeconds = 600; 
+            updateCwaTimerDisplay();
+            renderCwaMedia();
+        }
+
+        function setCwaMainLayer(layerKey) {
+            currentCwaLayer = layerKey;
+            
+            const btnGroups = [
+                'radar', 'satellite', 'satellite_enhanced', 'typhoon_path', 'typhoon_warning',
+                'rain_observe', 'qpf_forecast'
+            ];
+
+            btnGroups.forEach(k => {
+                const btn = document.getElementById(`btn-layer-${k}`);
+                if (!btn) return;
+                
+                if (k === layerKey) {
+                    btn.className = "w-full py-2.5 px-4 rounded-lg text-xs font-bold border text-left transition-all flex items-center justify-between bg-blue-600 text-white border-blue-500 shadow-md";
+                } else {
+                    btn.className = "w-full py-2.5 px-4 rounded-lg text-xs font-bold border text-left transition-all flex items-center justify-between bg-slate-900 border-slate-800 text-slate-400 hover:text-white";
+                }
+            });
+
+            resetCwaFilters();
+            renderCwaMedia();
+        }
+
+        function renderCwaMedia() {
+            const data = CWA_URLS[currentCwaLayer];
+            if (!data) return;
+
+            document.getElementById('cwa-title-display').innerText = data.title;
+            document.getElementById('cwa-source-link').href = data.source; 
+            document.getElementById('cwa-analysis-text').innerHTML = data.desc;
+
+            document.getElementById('cwa-loader').classList.remove('hidden');
+            document.getElementById('cwa-fallback-panel').classList.add('hidden');
+
+            const iframeEl = document.getElementById('cwa-main-iframe');
+            const imgContainer = document.getElementById('cwa-img-container');
+            const imgEl = document.getElementById('cwa-main-image');
+            const iframeHint = document.getElementById('cwa-iframe-hint');
+            const imageHint = document.getElementById('cwa-image-hint');
+
+            const timestamp = new Date().getTime();
+
+            // 重置矩陣位移與縮放，防止換圖時噴掉
+            panX = 0;
+            panY = 0;
+            zoom = 1.0;
+            applyCwaTransform();
+
+            if (data.type === 'image') {
+                iframeEl.classList.add('hidden');
+                imgContainer.classList.remove('hidden');
+                iframeHint.classList.add('hidden');
+                imageHint.classList.remove('hidden');
+                
+                imgEl.src = data.url + "?v=" + timestamp;
+            } else {
+                imgContainer.classList.add('hidden');
+                iframeEl.classList.remove('hidden');
+                imageHint.classList.add('hidden');
+                iframeHint.classList.remove('hidden');
+                
+                iframeEl.src = data.url;
+            }
+        }
+
+        function cwaMediaLoaded() {
+            document.getElementById('cwa-loader').classList.add('hidden');
+        }
+
+        function cwaImageError() {
+            document.getElementById('cwa-loader').classList.add('hidden');
+            document.getElementById('cwa-img-container').classList.add('hidden');
+            document.getElementById('cwa-fallback-panel').classList.remove('hidden');
+        }
+
+        function changeCwaZoom(step) {
+            const rng = document.getElementById('rng-cwa-zoom');
+            if (rng) {
+                let newVal = parseFloat(rng.value) + step;
+                if (newVal < 0.5) newVal = 0.5;
+                if (newVal > 3.0) newVal = 3.0; 
+                rng.value = newVal.toFixed(1);
+                zoom = newVal;
+                applyCwaTransform();
+            }
+        }
+
+        function applyCwaTransform() {
+            const bright = document.getElementById('rng-cwa-bright').value;
+
+            document.getElementById('lbl-cwa-zoom').innerText = `${zoom.toFixed(1)}x`;
+            document.getElementById('lbl-cwa-bright').innerText = `${bright}%`;
+
+            const zoomTarget = document.getElementById('cwa-zoom-target');
+            if (zoomTarget) {
+                // 利用 translate 進行位移，scale 進行高階純 GPU 硬體加速縮放
+                zoomTarget.style.transform = `translate(${panX}px, ${panY}px) scale(${zoom})`;
+                zoomTarget.style.filter = `brightness(${bright}%)`;
+            }
+        }
+
+        function resetCwaFilters() {
+            const rng = document.getElementById('rng-cwa-zoom');
+            if (rng) rng.value = "1.0";
+            zoom = 1.0;
+            panX = 0;
+            panY = 0;
+            applyCwaTransform();
+        }
+
+        function initCwaPanAndZoom() {
+            const wrapper = document.getElementById('cwa-media-wrapper');
+            const overlay = document.getElementById('cwa-drag-overlay');
+            if (!wrapper) return;
+
+            let isDragging = false;
+            let startX, startY;
+            let pinchStartDist = 0;
+
+            // 1. 滑鼠按下拖曳
+            wrapper.addEventListener('mousedown', (e) => {
+                if (e.button !== 0) return; // 僅限左鍵
+                isDragging = true;
+                wrapper.style.cursor = 'grabbing';
+                startX = e.clientX - panX;
+                startY = e.clientY - panY;
+                if (overlay) overlay.classList.remove('hidden'); // 啟動防穿透遮罩
+            });
+
+            // 2. 視窗全域移動 (解決滑鼠甩太快丟失焦點問題)
+            window.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                panX = e.clientX - startX;
+                panY = e.clientY - startY;
+                applyCwaTransform();
+            });
+
+            // 3. 視窗滑鼠放開
+            window.addEventListener('mouseup', () => {
+                if (isDragging) {
+                    isDragging = false;
+                    wrapper.style.cursor = 'grab';
+                    if (overlay) overlay.classList.add('hidden'); // 隱藏防穿透遮罩
+                }
+            });
+
+            // --- 行動裝置觸控手勢精準解算 ---
+            wrapper.addEventListener('touchstart', (e) => {
+                isDragging = true;
+                if (e.touches.length === 1) {
+                    startX = e.touches[0].clientX - panX;
+                    startY = e.touches[0].clientY - panY;
+                } else if (e.touches.length === 2) {
+                    // 雙指捏合初始化距離
+                    pinchStartDist = Math.hypot(
+                        e.touches[0].clientX - e.touches[1].clientX,
+                        e.touches[0].clientY - e.touches[1].clientY
+                    );
+                }
+                if (overlay) overlay.classList.remove('hidden');
+            }, { passive: true });
+
+            wrapper.addEventListener('touchmove', (e) => {
+                if (!isDragging) return;
+                if (e.touches.length === 1) {
+                    panX = e.touches[0].clientX - startX;
+                    panY = e.touches[0].clientY - startY;
+                    applyCwaTransform();
+                } else if (e.touches.length === 2) {
+                    const dist = Math.hypot(
+                        e.touches[0].clientX - e.touches[1].clientX,
+                        e.touches[0].clientY - e.touches[1].clientY
+                    );
+                    if (pinchStartDist > 0) {
+                        const factor = dist / pinchStartDist;
+                        pinchStartDist = dist;
+                        zoom *= factor;
+                        if (zoom < 0.5) zoom = 0.5;
+                        if (zoom > 3.0) zoom = 3.0;
+
+                        const rng = document.getElementById('rng-cwa-zoom');
+                        if (rng) rng.value = zoom.toFixed(1);
+                        applyCwaTransform();
+                    }
+                }
+            }, { passive: true });
+
+            wrapper.addEventListener('touchend', () => {
+                isDragging = false;
+                pinchStartDist = 0;
+                if (overlay) overlay.classList.add('hidden');
+            });
+
+            // 4. 滑鼠滾輪即時縮放 (免拉調整桿，Google Maps 規格體驗)
+            wrapper.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                const delta = e.deltaY < 0 ? 0.15 : -0.15;
+                zoom += delta;
+                if (zoom < 0.5) zoom = 0.5;
+                if (zoom > 3.0) zoom = 3.0;
+
+                const rng = document.getElementById('rng-cwa-zoom');
+                if (rng) rng.value = zoom.toFixed(1);
+                applyCwaTransform();
+            }, { passive: false });
+
+            // 5. 雙擊快速恢復預設比例
+            wrapper.addEventListener('dblclick', () => {
+                resetCwaFilters();
+                showToastMessage("已恢復原生 1.0x 視角與位移");
+            });
+        }
+
+
+        // ==========================================
+        // 📡 災防告警細胞廣播 (CBS) 自動更新與 3 小時智慧篩選引擎
+        // ==========================================
+
+        let cbsCountdown = 180; // 3分鐘 = 180 秒
+        let cbsTimerInterval = null;
+        let cbsFilterMode = 'all'; 
+
+        function showToastMessage(text) {
+            const toast = document.getElementById('toast-message-box');
+            const toastText = document.getElementById('toast-text');
+            if (!toast || !toastText) return;
+
+            toastText.innerText = text;
+            toast.classList.remove('translate-y-[-20px]', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+
+            setTimeout(() => {
+                toast.classList.add('translate-y-[-20px]', 'opacity-0');
+                toast.classList.remove('translate-y-0', 'opacity-100');
+            }, 3000);
+        }
+
+        function copyFeedUrlToClipboard(btn) {
+            const urlText = 'https://cbs.tw/files/rssatomfeed.xml';
+            
+            const textarea = document.createElement('textarea');
+            textarea.value = urlText;
+            textarea.style.position = 'fixed';
+            document.body.appendChild(textarea);
+            textarea.select();
+            
+            try {
+                document.execCommand('copy');
+                showToastMessage("成功複製 ATOM Feed 示警訂閱網址！");
+                
+                const originalText = btn.querySelector('.btn-copy-text').innerText;
+                btn.querySelector('.btn-copy-text').innerText = '✓ 複製成功';
+                btn.classList.add('border-emerald-500/50', 'bg-emerald-950/20', 'text-emerald-400');
+                
+                setTimeout(() => {
+                    btn.querySelector('.btn-copy-text').innerText = originalText;
+                    btn.classList.remove('border-emerald-500/50', 'bg-emerald-950/20', 'text-emerald-400');
+                }, 2000);
+            } catch (err) {
+                console.error('複製失敗:', err);
+                showToastMessage("複製失敗，請手動複製。");
+            } finally {
+                document.body.removeChild(textarea);
+            }
+        }
+
+        function initCbsAlerts() {
+            addCbsLog("TTMC 即時防救災警報監聽中樞啟動。");
+            
+            fetchAndRenderCbsData();
+
+            if (cbsTimerInterval) clearInterval(cbsTimerInterval);
+            cbsCountdown = 180; // 3分鐘
+            updateCbsCountdownUI();
+
+            cbsTimerInterval = setInterval(() => {
+                cbsCountdown--;
+                if (cbsCountdown <= 0) {
+                    addCbsLog("到達 3 分鐘定時，自動更新資料庫...");
+                    fetchAndRenderCbsData();
+                    cbsCountdown = 180;
+                }
+                updateCbsCountdownUI();
+            }, 1000);
+        }
+
+        function updateCbsCountdownUI() {
+            const badge = document.getElementById('cbs-countdown-badge');
+            if (badge) {
+                badge.innerHTML = `自動更新倒數: <span class="text-white font-mono">${cbsCountdown}s</span>`;
+            }
+        }
+
+        function triggerManualCbsRefresh() {
+            const iconHeader = document.getElementById('btn-refresh-cbs-header-icon');
+            if (iconHeader) {
+                iconHeader.classList.add('animate-spin');
+                setTimeout(() => iconHeader.classList.remove('animate-spin'), 1000);
+            }
+            
+            addCbsLog("使用者手動同步即時示警資料庫...");
+            fetchAndRenderCbsData();
+            cbsCountdown = 180; // 3分鐘
+            updateCbsCountdownUI();
+            showToastMessage("災防監控終端已手動同步。");
+        }
+
+        function addCbsLog(logText) {
+            const logContainer = document.getElementById('cbs-log-container');
+            if (!logContainer) return;
+
+            const now = new Date();
+            const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+            
+            const logLine = document.createElement('div');
+            logLine.className = 'border-l-2 border-orange-500 pl-1.5 mb-1';
+            logLine.innerHTML = `<span class="text-orange-400 font-bold">[${timeStr}]</span> ${logText}`;
+            
+            logContainer.appendChild(logLine);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        function openCbsModal(title, summary, time, author, type) {
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-summary').innerText = summary;
+            document.getElementById('modal-time').innerText = time;
+            document.getElementById('modal-author').innerText = author;
+
+            const badge = document.getElementById('modal-badge');
+            const actionBox = document.getElementById('modal-action-box');
+
+            badge.innerText = type || "CBS 災害示警";
+
+            if (title.includes("大雷雨") || title.includes("雷雨") || title.includes("暴雨") || summary.includes("對流胞") || summary.includes("強對流")) {
+                badge.className = "text-[10px] font-black px-2.5 py-1 rounded tracking-wide border bg-orange-600 text-white border-orange-500";
+                actionBox.innerHTML = `
+                    <span class="font-bold block text-sm mb-1">⛈️ 大雷雨避險建議指南：</span>
+                    <ul class="list-disc pl-4 space-y-1">
+                        <li>請立即進入堅固的室內避難，切勿待在樹下、空曠處或騎乘機車。</li>
+                        <li>強降雨易導致地下道、低窪處積水，開車民眾請減速並避開低窪路段。</li>
+                        <li>伴隨密集雷擊，請盡可能拔除貴重電器插頭，防範突波損毀。</li>
+                    </ul>
+                `;
+            } else if (title.includes("土石流") || title.includes("崩塌") || summary.includes("警戒區")) {
+                badge.className = "text-[10px] font-black px-2.5 py-1 rounded tracking-wide border bg-yellow-500 text-slate-950 border-yellow-400";
+                actionBox.innerHTML = `
+                    <span class="font-bold block text-sm mb-1">⛰️ 土石流撤離指南：</span>
+                    <ul class="list-disc pl-4 space-y-1">
+                        <li>紅色警戒區居民必須立刻依循村里避難計畫，實施預防性或強制性撤離。</li>
+                        <li>撤離時攜帶個人輕便重要物品，切勿因搶救財產而在危險區域逗留。</li>
+                        <li>山區道路易受阻，通訊可能中斷，請以衛星電話或地方災害應變中心調度為準。</li>
+                    </ul>
+                `;
+            } else if (title.includes("放水") || title.includes("溢洪") || title.includes("洩洪") || summary.includes("水庫")) {
+                badge.className = "text-[10px] font-black px-2.5 py-1 rounded tracking-wide border bg-blue-600 text-white border-blue-500";
+                actionBox.innerHTML = `
+                    <span class="font-bold block text-sm mb-1">🌊 水庫防洪警告指南：</span>
+                    <ul class="list-disc pl-4 space-y-1">
+                        <li>水庫進行調節性放水或溢洪時，下游河川水位會出現瞬時暴漲，水流湍急。</li>
+                        <li>請沿岸工作、垂釣、觀光之民眾，在接到警報後立即朝向兩岸高處撤離。</li>
+                        <li>絕對不要在洩洪期間於河床、溪岸逗留，生命安全第一。</li>
+                    </ul>
+                `;
+            } else if (title.includes("地震") || title.includes("Earthquake") || summary.includes("地震")) {
+                badge.className = "text-[10px] font-black px-2.5 py-1 rounded tracking-wide border bg-red-600 text-white border-red-500 animate-pulse";
+                actionBox.innerHTML = `
+                    <span class="font-bold block text-sm mb-1">🚨 強震避難防禦動作：</span>
+                    <ul class="list-disc pl-4 space-y-1">
+                        <li>地震來臨時，請立刻執行『趴下 (Drop)、掩護 (Cover)、穩住 (Hold on)』避險動作。</li>
+                        <li>遠離大型高櫃、懸掛燈具及大面玻璃窗，躲藏在堅固的桌下保護頭頸部。</li>
+                        <li>待搖晃停止後，關閉火源與瓦斯，將大門推開保持通道順暢，切勿乘電梯。</li>
+                    </ul>
+                `;
+            } else {
+                badge.className = "text-[10px] font-black px-2.5 py-1 rounded tracking-wide border bg-slate-800 text-slate-300 border-slate-700";
+                actionBox.innerHTML = `
+                    <span class="font-bold block text-sm mb-1">🛡️ 常態防情應急自救指南：</span>
+                    <ul class="list-disc pl-4 space-y-1">
+                        <li>維持常態防颱行程。加強大樓排水道清淤，檢視應急防災包物資。</li>
+                        <li>切勿聽信非官方不實謠言，防情調度一律以中央氣象署與地方縣市政府公告為準。</li>
+                    </ul>
+                `;
+            }
+
+            document.getElementById('cbs-detail-modal').classList.remove('hidden');
+        }
+
+        function closeCbsModal() {
+            document.getElementById('cbs-detail-modal').classList.add('hidden');
+        }
+
+        function setCbsFilterMode(mode) {
+            cbsFilterMode = mode;
+            const btnAll = document.getElementById('btn-cbs-filter-all');
+            const btn3h = document.getElementById('btn-cbs-filter-3h');
+
+            if (mode === 'all') {
+                btnAll.className = "px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all bg-orange-600 text-white shadow-md";
+                btn3h.className = "px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-slate-200";
+                addCbsLog("切換過濾器：顯示近期所有示警。");
+            } else {
+                btn3h.className = "px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all bg-orange-600 text-white shadow-md";
+                btnAll.className = "px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-slate-200";
+                addCbsLog("切換過濾器：僅篩選 3 小時內即時警報。");
+            }
+            fetchAndRenderCbsData();
+        }
+
+        async function fetchAndRenderCbsData() {
+            const container = document.getElementById('cbs-alerts-list');
+            const statusText = document.getElementById('cbs-status-text');
+            const statusDot = document.getElementById('cbs-status-dot');
+            if (!container) return;
+
+            container.innerHTML = `
+                <div class="text-center py-12">
+                    <i class="fa-solid fa-circle-notch animate-spin text-orange-500 text-3xl mb-3"></i>
+                    <p class="text-xs text-slate-400">正在建立跨域連線，拉取 cbs.tw XML 細胞廣播示警封包...</p>
+                </div>
+            `;
+
+            const proxyUrls = [
+                'https://cbs.tw/files/rssatomfeed.xml', 
+                `https://api.allorigins.win/raw?url=${encodeURIComponent("https://cbs.tw/files/rssatomfeed.xml")}`,
+                `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent("https://cbs.tw/files/rssatomfeed.xml")}`,
+                `https://corsproxy.io/?https://cbs.tw/files/rssatomfeed.xml`
+            ];
+
+            let rawXml = null;
+            let usedProxy = false;
+
+            for (let url of proxyUrls) {
+                try {
+                    const response = await fetch(url);
+                    if (response.ok) {
+                        rawXml = await response.text();
+                        if (rawXml && rawXml.includes("<feed")) {
+                            usedProxy = true;
+                            break;
+                        }
+                    }
+                } catch (e) {
+                    console.warn("節點連線被拒，自動轉向下一渠道...", e);
+                }
+            }
+
+            const now = new Date();
+
+            if (usedProxy && rawXml) {
+                try {
+                    addCbsLog("成功解算 cbs.tw XML 示警封包結構...");
+                    const parser = new DOMParser();
+                    const xmlDoc = parser.parseFromString(rawXml, "text/xml");
+                    const entries = xmlDoc.getElementsByTagName("entry");
+
+                    if (entries.length === 0) {
+                        throw new Error("Empty XML payload");
+                    }
+
+                    if (statusText) statusText.innerText = "即時監控：已連線國家災害告警節點";
+                    if (statusDot) statusDot.className = "w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse";
+                    
+                    container.innerHTML = "";
+                    let renderedCount = 0;
+
+                    for (let i = 0; i < entries.length; i++) {
+                        const entry = entries[i];
+                        const title = entry.getElementsByTagName("title")[0]?.textContent || "未命名示警";
+                        
+                        let summary = "";
+                        const descNode = entry.getElementsByTagName("description")[0];
+                        const textNode = entry.getElementsByTagName("text")[0];
+                        const summaryNode = entry.getElementsByTagName("summary")[0];
+                        const contentNode = entry.getElementsByTagName("content")[0];
+
+                        if (descNode) {
+                            summary = descNode.textContent || descNode.text || "";
+                        } else if (textNode) {
+                            summary = textNode.textContent || "";
+                        } else if (summaryNode) {
+                            summary = summaryNode.textContent || "";
+                        } else if (contentNode) {
+                            summary = contentNode.textContent || "";
+                        }
+
+                        if (summary) {
+                            summary = summary.replace(/^\s*\(\s*/g, '').replace(/\s*\)\s*$/g, ''); 
+                            summary = summary.replace(/<!\[CDATA\[/gi, '').replace(/\]\]>/g, ''); 
+                            summary = summary.trim();
+                        } else {
+                            summary = "無詳細內容。";
+                        }
+
+                        const sent = entry.getElementsByTagName("sent")[0]?.textContent;
+                        const updated = entry.getElementsByTagName("updated")[0]?.textContent || 
+                                        entry.getElementsByTagName("published")[0]?.textContent || 
+                                        sent || "2026/06/25";
+                        
+                        const senderVal = entry.getElementsByTagName("sender")[0]?.getElementsByTagName("value")[0]?.textContent ||
+                                          entry.getElementsByTagName("sender")[0]?.textContent;
+                        const author = senderVal || 
+                                       entry.getElementsByTagName("author")[0]?.getElementsByTagName("name")[0]?.textContent || 
+                                       "國家災害防救科技中心";
+
+                        const entryTime = new Date(updated);
+                        const hoursDiff = (now - entryTime) / (1000 * 60 * 60);
+
+                        if (cbsFilterMode === '3hours' && (hoursDiff < 0 || hoursDiff > 3)) {
+                            continue;
+                        }
+
+                        let localTime = updated;
+                        try {
+                            localTime = entryTime.toLocaleString('zh-TW', { timeZone: 'Asia/Taipei' });
+                        } catch(e) {}
+
+                        let cardClass = "bg-slate-900/50 border-slate-800 text-slate-300";
+                        let badgeClass = "bg-slate-800 text-slate-300 border-slate-700";
+                        if (title.includes("地震") || title.includes("Earthquake")) {
+                            cardClass = "bg-red-950/20 border-red-500/30 text-red-400";
+                            badgeClass = "bg-red-600 text-white border-red-500";
+                        } else if (title.includes("大雷雨") || title.includes("暴雨") || title.includes("Rain") || title.includes("雷雨")) {
+                            cardClass = "bg-orange-950/20 border-orange-500/30 text-orange-400";
+                            badgeClass = "bg-orange-500 text-slate-950 border-orange-400";
+                        } else if (title.includes("土石流") || title.includes("崩塌")) {
+                            cardClass = "bg-yellow-950/20 border-yellow-500/30 text-yellow-400";
+                            badgeClass = "bg-yellow-500 text-slate-950 border-yellow-400";
+                        } else if (title.includes("放水") || title.includes("溢洪") || title.includes("洩洪") || title.includes("放流")) {
+                            cardClass = "bg-blue-950/20 border-blue-500/30 text-blue-400";
+                            badgeClass = "bg-blue-600 text-white border-blue-500";
+                        }
+
+                        const isRecent = hoursDiff >= 0 && hoursDiff <= 3;
+                        const glowStyle = isRecent ? 'glow-orange border-orange-500/50 scale-[1.01]' : '';
+
+                        const card = document.createElement("div");
+                        card.className = `border p-4.5 rounded-xl space-y-2.5 transition-all duration-300 hover:scale-[1.02] hover:border-slate-700 cursor-pointer ${cardClass} ${glowStyle}`;
+                        
+                        card.onclick = () => openCbsModal(title, summary, localTime, author, title.includes("地震") ? "強震速報" : (title.includes("雷雨") ? "大雷雨速報" : "示警公告"));
+                        
+                        card.innerHTML = `
+                            <div class="flex items-center justify-between gap-2 flex-wrap">
+                                <div class="flex items-center gap-1.5">
+                                    <span class="text-[9px] font-black px-1.5 py-0.5 rounded tracking-wide border ${badgeClass}">CBS ATOM XML</span>
+                                    ${isRecent ? `<span class="bg-red-600 text-white text-[9px] px-1 py-0.2 rounded font-black animate-pulse"><i class="fa-solid fa-bolt mr-0.5"></i>3小時內即時</span>` : ''}
+                                </div>
+                                <span class="text-[11px] text-slate-500 font-mono font-bold">${localTime}</span>
+                            </div>
+                            <h4 class="text-sm font-black text-slate-100 flex items-center justify-between gap-1">
+                                <span>${title}</span>
+                                <i class="fa-solid fa-chevron-right text-xs text-slate-500"></i>
+                            </h4>
+                            <p class="text-xs leading-relaxed text-slate-300 font-medium line-clamp-2">${summary}</p>
+                            <div class="text-[10px] text-slate-500 border-t border-slate-850/60 pt-2 flex justify-between font-bold">
+                                <span>發布來源：${author}</span>
+                                <span class="text-emerald-400 font-mono flex items-center gap-1"><i class="fa-solid fa-file-invoice"></i> 點擊查閱詳情</span>
+                            </div>
+                        `;
+                        container.appendChild(card);
+                        renderedCount++;
+                        if (renderedCount >= 10) break;
+                    }
+
+                    if (renderedCount === 0) {
+                        container.innerHTML = `
+                            <div class="text-center py-16 space-y-3">
+                                <i class="fa-solid fa-folder-open text-slate-600 text-4xl"></i>
+                                <p class="text-xs text-slate-400">目前 3 小時內無細胞廣播即時警報。</p>
+                                <button onclick="setCbsFilterMode('all')" class="bg-slate-900 border border-slate-800 text-white font-bold py-1.5 px-4 rounded-xl text-xs hover:bg-slate-800 transition-all">
+                                    顯示近期所有示警 (7天內)
+                                </button>
+                            </div>
+                        `;
+                    } else {
+                        addCbsLog(`解析完成。成功解算並渲染 ${renderedCount} 筆符合條件之即時示警。`);
+                    }
+                    return;
+
+                } catch (xmlError) {
+                    console.error("XML 解析出錯，無法呈現資料...", xmlError);
+                }
+            }
+
+            addCbsLog("所有連線節點受阻，無法獲取真實即時示警資料。");
+            if (statusText) statusText.innerText = "即時監控：連線異常";
+            if (statusDot) statusDot.className = "w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse";
+
+            container.innerHTML = `
+                <div class="text-center py-16 space-y-3">
+                    <i class="fa-solid fa-triangle-exclamation text-red-500 text-4xl mb-3"></i>
+                    <p class="text-xs text-slate-400">目前無法連線至 cbs.tw 獲取真實資料。<br>（可能因網絡安全限制或伺服器異常）</p>
+                    <button onclick="fetchAndRenderCbsData()" class="bg-slate-900 border border-slate-800 text-white font-bold py-1.5 px-4 rounded-xl text-xs hover:bg-slate-800 transition-all mt-2">
+                        重新嘗試連線
+                    </button>
+                </div>
+            `;
+        }
+
+        window.onload = function() {
+            initApp();
+            updateClock();
+            setInterval(updateClock, 1000);
+        };
+    </script>
+</body>
+</html>
