@@ -329,7 +329,6 @@
 
         </section>
 
-
         <section id="tab-county" class="space-y-6 tab-content hidden">
             <div class="bg-slate-950 border border-slate-850 p-4 rounded-2xl flex items-center justify-between gap-4 flex-wrap">
                 <div class="flex items-center space-x-2">
@@ -567,7 +566,7 @@
                     </div>
 
                     <div class="bg-slate-950/50 border border-slate-850 rounded-2xl p-6 shadow-xl space-y-3">
-                        <h4 class="font-bold text-xs text-blue-400 uppercase tracking-wider border-b border-slate-850 pb-2">圖資原樣分析提示</h4>
+                        <h4 class="font-bold text-xs text-blue-400 uppercase tracking-wider border-b border-slate-850 pb-2">圖資原樣 analysis 提示</h4>
                         <p id="cwa-analysis-text" class="text-xs text-slate-300 leading-relaxed">
                             請選擇上方圖層以顯示即時解讀...
                         </p>
@@ -931,7 +930,9 @@
                 id: "----",
                 ttmcLevel: "無",
                 cwaIntensity: "無", 
-                nationalWarning: "NONE", 
+                nationalWarning: "NONE", // 可設定為 "NONE"、"SEA"、"LAND"、"BOTH"
+                seaWarningActive: false, // 🌊 手動單獨控制【海上警報燈號】(true: 警戒中 / false: 常態準備)
+                landWarningActive: false, // ⛰️ 手動單獨控制【陸上警報燈號】(true: 警戒中 / false: 常態準備)
                 centerWind: "--.-",
                 radius7: "---",
                 radius10: "---", 
@@ -969,6 +970,7 @@
                     isComposite: true,
                     subZones: {
                         "北區": { color: "BLUE", districts: "竹北、新豐、湖口", note: "維持常態氣象觀測。" },
+                        "text": "竹北、新豐、湖口",
                         "中區": { color: "BLUE", districts: "新埔、關西、芎林", note: "維持常態氣象觀測。" },
                         "南區": { color: "BLUE", districts: "竹東、橫山、北埔、寶山、峨眉", note: "維持常態氣象觀測。" },
                         "北部山區": { color: "BLUE", districts: "尖石鄉全境", note: "維持常態氣象觀測，注意山區午後局部陣雨。" },
@@ -1093,6 +1095,7 @@
                     isComposite: true,
                     subZones: {
                         "北區 (東海岸)": { color: "BLUE", districts: "長濱、成功、東河", note: "維持常態氣象觀測。" },
+                        "text": "長濱、成功、東河",
                         "中區 (縱谷及市區)": { color: "BLUE", districts: "臺東、卑南、鹿野、關山、池上", note: "維持常態氣象觀測。" },
                         "南區 (南迴)": { color: "BLUE", districts: "太麻里、大武", note: "維持常態氣象觀測。" },
                         "離島區": { color: "BLUE", districts: "綠島、蘭嶼", note: "維持常態氣象觀測。" },
@@ -1192,6 +1195,16 @@
                         <p class="text-xs text-blue-200 font-medium leading-relaxed">預測七級暴風圈將於 <strong>24 小時內</strong> 侵入台灣鄰近海域。全台海域管制，海巡啟動勸離。</p>
                     </div>
                 `;
+            } else if (nwType === "BOTH") {
+                natWarningContainer.className = "bg-red-950/30 border border-red-500/50 rounded-xl p-5 flex items-start gap-4 glow-red";
+                natWarningContainer.innerHTML = `
+                    <div class="w-12 h-12 rounded-full bg-red-600 flex items-center justify-center text-white text-xl flex-shrink-0 animate-pulse shadow-[0_0_15px_rgba(239,68,68,0.5)]"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                    <div>
+                        <span class="text-red-400 text-[10px] font-black tracking-wider uppercase mb-1 block border border-red-500/30 bg-red-950/50 px-2 py-0.5 rounded w-fit">國家總體預警機制 (巨觀防線)</span>
+                        <h3 class="text-lg font-black text-white mb-1 tracking-wide">🚨 CWA 海上陸上颱風警報</h3>
+                        <p class="text-xs text-red-200 font-medium leading-relaxed">預測七級暴風圈已同時侵入台灣鄰近海域並即將或已經接觸陸地。海陸全面警戒，嚴加防範。</p>
+                    </div>
+                `;
             } else {
                 natWarningContainer.className = "bg-slate-900/60 border border-slate-800 rounded-xl p-4 flex items-center gap-3";
                 natWarningContainer.innerHTML = `
@@ -1203,6 +1216,9 @@
                 `;
             }
 
+            // ==========================================
+            // 🚨 海陸警報監測燈精準渲染系統 (後台布林與 nationalWarning 混合邏輯)
+            // ==========================================
             const lightSea = document.getElementById('light-sea-warning');
             const lightSeaDot = document.getElementById('light-sea-dot');
             const lightSeaStatus = document.getElementById('light-sea-status');
@@ -1210,37 +1226,58 @@
             const lightLandDot = document.getElementById('light-land-dot');
             const lightLandStatus = document.getElementById('light-land-status');
 
-            if (nwType === "LAND") {
+            // 1. 海上警報判定：如果後台 seaWarningActive 布林明確設定，則以此為主；否則依照整體警報種類自動適配
+            const isSeaActive = (TTMC_DATA.typhoon.seaWarningActive !== undefined && TTMC_DATA.typhoon.seaWarningActive !== null)
+                ? TTMC_DATA.typhoon.seaWarningActive
+                : (nwType === "SEA" || nwType === "LAND" || nwType === "BOTH");
+
+            // 2. 陸上警報判定：如果後台 landWarningActive 布林明確設定，則以此為主；否則依照整體警報種類自動適配
+            const isLandActive = (TTMC_DATA.typhoon.landWarningActive !== undefined && TTMC_DATA.typhoon.landWarningActive !== null)
+                ? TTMC_DATA.typhoon.landWarningActive
+                : (nwType === "LAND" || nwType === "BOTH");
+
+            // 3. 渲染海上警報燈號
+            if (isSeaActive) {
                 if (lightSea) {
                     lightSea.className = "flex items-center justify-between p-4 rounded-xl border transition-all duration-300 bg-blue-950/20 border-blue-500/50 text-blue-400 glow-blue";
-                    lightSeaDot.className = "w-3.5 h-3.5 rounded-full bg-blue-500 animate-pulse";
-                    lightSeaStatus.innerText = "已發布 • 警戒中";
                 }
-                if (lightLand) {
-                    lightLand.className = "flex items-center justify-between p-4 rounded-xl border transition-all duration-300 bg-red-950/20 border-red-500/50 text-red-400 glow-red";
-                    lightLandDot.className = "w-3.5 h-3.5 rounded-full bg-red-500 animate-ping";
-                    lightLandStatus.innerText = "已發布 • 警戒中";
-                }
-            } else if (nwType === "SEA") {
-                if (lightSea) {
-                    lightSea.className = "flex items-center justify-between p-4 rounded-xl border transition-all duration-300 bg-blue-950/20 border-blue-500/50 text-blue-400 glow-blue";
+                if (lightSeaDot) {
                     lightSeaDot.className = "w-3.5 h-3.5 rounded-full bg-blue-500 animate-ping";
-                    lightSeaStatus.innerText = "已發布 • 警戒中";
                 }
-                if (lightLand) {
-                    lightLand.className = "flex items-center justify-between p-4 rounded-xl border transition-all duration-300 bg-slate-900/40 border-slate-850 text-slate-500";
-                    lightLandDot.className = "w-3.5 h-3.5 rounded-full bg-slate-800";
-                    lightLandStatus.innerText = "未發布 • 常態準備";
+                if (lightSeaStatus) {
+                    lightSeaStatus.innerText = "已發布 • 警戒中";
                 }
             } else {
                 if (lightSea) {
                     lightSea.className = "flex items-center justify-between p-4 rounded-xl border transition-all duration-300 bg-slate-900/40 border-slate-850 text-slate-500";
+                }
+                if (lightSeaDot) {
                     lightSeaDot.className = "w-3.5 h-3.5 rounded-full bg-slate-800";
+                }
+                if (lightSeaStatus) {
                     lightSeaStatus.innerText = "未發布 • 常態準備";
                 }
+            }
+
+            // 4. 渲染陸上警報燈號
+            if (isLandActive) {
+                if (lightLand) {
+                    lightLand.className = "flex items-center justify-between p-4 rounded-xl border transition-all duration-300 bg-red-950/20 border-red-500/50 text-red-400 glow-red";
+                }
+                if (lightLandDot) {
+                    lightLandDot.className = "w-3.5 h-3.5 rounded-full bg-red-500 animate-ping";
+                }
+                if (lightLandStatus) {
+                    lightLandStatus.innerText = "已發布 • 警戒中";
+                }
+            } else {
                 if (lightLand) {
                     lightLand.className = "flex items-center justify-between p-4 rounded-xl border transition-all duration-300 bg-slate-900/40 border-slate-850 text-slate-500";
+                }
+                if (lightLandDot) {
                     lightLandDot.className = "w-3.5 h-3.5 rounded-full bg-slate-800";
+                }
+                if (lightLandStatus) {
                     lightLandStatus.innerText = "未發布 • 常態準備";
                 }
             }
@@ -1451,9 +1488,6 @@
             updateEmergencyGuidelines(szData.color);
         }
 
-        // ==========================================
-        // 🎛️ 各級顏色風球之平地與山區實況對連動系統說明
-        // ==========================================
         function updateEmergencyGuidelines(color) {
             const el = document.getElementById('focus-emergency-guidelines');
 
@@ -1480,7 +1514,7 @@
                 el.innerHTML = `
                     <div class="flex items-center space-x-2 text-purple-400 font-bold text-base">
                         <i class="fa-solid fa-triangle-exclamation animate-pulse"></i>
-                        <span><span>【🟪 PURPLE 災害警戒實況】</span></span>
+                        <span>【🟪 PURPLE 災害警戒實況】</span>
                     </div>
                     <ul class="list-none pl-0 space-y-2 text-slate-300 text-xs leading-relaxed">
                         <li>
@@ -1734,7 +1768,6 @@
             }
         }
 
-        // 精密 2D 矩陣縮放渲染核心 (解決邊界卡死問題)
         function applyCwaTransform() {
             const bright = document.getElementById('rng-cwa-bright').value;
 
@@ -1758,7 +1791,6 @@
             applyCwaTransform();
         }
 
-        // 精密拖曳與捏合放大重構 (2.0 滑順手勢平移核心)
         function initCwaPanAndZoom() {
             const wrapper = document.getElementById('cwa-media-wrapper');
             const overlay = document.getElementById('cwa-drag-overlay');
