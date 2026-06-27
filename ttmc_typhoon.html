@@ -938,8 +938,8 @@
                 radius10: "---", 
                 position: "---",
                 movement: "---",
-                countdownTargetDesc: "無活躍氣旋",
-                countdownTargetTime: ""
+                countdownTargetDesc: "無活躍颱風",
+                countdownTargetTime: "" // 只要填寫指定時間，例如 "2026/06/28 15:00:00" 或 "2026-06-28 15:00"，系統即會以此時間自動倒數。
             },
             counties: {
                 "基隆市": { isComposite: false, color: "BLUE", districts: "基隆市全區", note: "維持常態氣象觀測。" },
@@ -959,7 +959,6 @@
                     isComposite: true,
                     subZones: {
                         "北區 (沿海台地)": { color: "BLUE", districts: "大園、蘆竹、觀音、新屋", note: "維持常態氣象觀測。" },
-                        "text": "大園、蘆竹、觀音、新屋",
                         "中區": { color: "BLUE", districts: "桃園、中壢、平鎮、八德", note: "維持常態氣象觀測。" },
                         "南區 (近山丘陵)": { color: "BLUE", districts: "楊梅、龜山、龍潭、大溪", note: "維持常態氣象觀測。" },
                         "復興山區": { color: "BLUE", districts: "復興區全境", note: "維持常態氣象觀測，防範邊坡零星落石。" }
@@ -970,7 +969,6 @@
                     isComposite: true,
                     subZones: {
                         "北區": { color: "BLUE", districts: "竹北、新豐、湖口", note: "維持常態氣象觀測。" },
-                        "text": "竹北、新豐、湖口",
                         "中區": { color: "BLUE", districts: "新埔、關西、芎林", note: "維持常態氣象觀測。" },
                         "南區": { color: "BLUE", districts: "竹東、橫山、北埔、寶山、峨眉", note: "維持常態氣象觀測。" },
                         "北部山區": { color: "BLUE", districts: "尖石鄉全境", note: "維持常態氣象觀測，注意山區午後局部陣雨。" },
@@ -1029,7 +1027,6 @@
                     isComposite: true,
                     subZones: {
                         "北區": { color: "BLUE", districts: "大林、溪口、新港、民雄、六腳", note: "維持常態氣象觀測。" },
-                        "text": "大林、溪口、新港、民雄、六腳",
                         "中區": { color: "BLUE", districts: "太保、朴子、東石、水上、鹿草", note: "維持常態氣象觀測。" },
                         "南區": { color: "BLUE", districts: "布袋、義竹", note: "維持常態氣象觀測。" },
                         "進階高地(阿里山山區)": { color: "BLUE", districts: "阿里山鄉、梅山鄉、竹崎鄉", note: "維持常態氣象觀測，注意阿里山森林鐵路行車指標。" },
@@ -1095,7 +1092,6 @@
                     isComposite: true,
                     subZones: {
                         "北區 (東海岸)": { color: "BLUE", districts: "長濱、成功、東河", note: "維持常態氣象觀測。" },
-                        "text": "長濱、成功、東河",
                         "中區 (縱谷及市區)": { color: "BLUE", districts: "臺東、卑南、鹿野、關山、池上", note: "維持常態氣象觀測。" },
                         "南區 (南迴)": { color: "BLUE", districts: "太麻里、大武", note: "維持常態氣象觀測。" },
                         "離島區": { color: "BLUE", districts: "綠島、蘭嶼", note: "維持常態氣象觀測。" },
@@ -1150,11 +1146,6 @@
         let timerInterval;
 
         function initApp() {
-            const targetTime = new Date();
-            targetTime.setHours(targetTime.getHours() + 3);
-            targetTime.setMinutes(targetTime.getMinutes() + 42);
-            TTMC_DATA.typhoon.countdownTargetTime = targetTime.toISOString();
-
             document.getElementById('marquee-text').innerHTML = TTMC_DATA.marqueeAdvisory;
             document.getElementById('bulletin-detail-box').innerHTML = TTMC_DATA.bulletinStrategyText;
             document.getElementById('advisory-publish-time').innerText = `發布時間: ${TTMC_DATA.publishTime}`;
@@ -1300,7 +1291,13 @@
                 document.getElementById('countdown-timer').innerText = "--:--:--";
                 document.getElementById('countdown-timer').className = "font-mono text-xl font-bold text-slate-600";
             } else {
-                startCountdown(TTMC_DATA.typhoon.countdownTargetTime);
+                if (TTMC_DATA.typhoon.countdownTargetTime) {
+                    document.getElementById('countdown-timer').className = "font-mono text-xl font-bold text-red-500";
+                    startCountdown(TTMC_DATA.typhoon.countdownTargetTime);
+                } else {
+                    document.getElementById('countdown-timer').innerText = "--:--:--";
+                    document.getElementById('countdown-timer').className = "font-mono text-xl font-bold text-slate-600";
+                }
             }
 
             buildCountyButtons();
@@ -1333,18 +1330,60 @@
             document.getElementById('current-clock').innerText = `${year}/${month}/${day} ${hours}:${minutes}:${seconds}`;
         }
 
-        function startCountdown(targetTimeISO) {
-            const target = new Date(targetTimeISO).getTime();
-            if (isNaN(target)) return;
+        function startCountdown(targetTimeStr) {
+            const timerEl = document.getElementById('countdown-timer');
+            if (!targetTimeStr || targetTimeStr.trim() === "") {
+                if (timerEl) timerEl.innerText = "--:--:--";
+                return;
+            }
+
+            // 【跨時區與跨瀏覽器高階解析引擎】
+            // 解決 Safari 對特定 Date 格式解析為 NaN 的問題，並確保強制轉為台灣時間 (UTC+8)
+            let cleanStr = targetTimeStr.trim().replace(/-/g, '/').replace('T', ' ');
+            
+            // 防呆補齊時分秒
+            if (!cleanStr.includes(' ')) {
+                cleanStr += " 00:00:00";
+            } else {
+                let timeParts = cleanStr.split(' ')[1].split(':');
+                if (timeParts.length === 1) cleanStr += ":00:00";
+                else if (timeParts.length === 2) cleanStr += ":00";
+            }
+            
+            // 移除可能造成干擾的時區後綴
+            cleanStr = cleanStr.split('+')[0].replace('Z', '').trim();
+            
+            let target;
+            const timeMatch = cleanStr.match(/^(\d{4})\/(\d{1,2})\/(\d{1,2})\s+(\d{1,2}):(\d{1,2}):(\d{1,2})/);
+            
+            if (timeMatch) {
+                // 精準手動解析，強制視為台灣時間 (UTC+8) 轉換為絕對 Timestamp
+                const y = parseInt(timeMatch[1], 10);
+                const m = parseInt(timeMatch[2], 10) - 1;
+                const d = parseInt(timeMatch[3], 10);
+                const h = parseInt(timeMatch[4], 10);
+                const min = parseInt(timeMatch[5], 10);
+                const s = parseInt(timeMatch[6], 10);
+                target = Date.UTC(y, m, d, h - 8, min, s);
+            } else {
+                // 備用方案：交由瀏覽器原生引擎解析
+                target = new Date(cleanStr).getTime();
+            }
+
+            if (isNaN(target)) {
+                if (timerEl) timerEl.innerText = "格式錯誤";
+                return;
+            }
 
             if (timerInterval) clearInterval(timerInterval);
 
             function updateTimer() {
+                if (!timerEl) return;
                 const now = new Date().getTime();
                 const distance = target - now;
 
                 if (distance < 0) {
-                    document.getElementById('countdown-timer').innerText = "已越警戒時效";
+                    timerEl.innerText = "已越警戒時效";
                     clearInterval(timerInterval);
                     return;
                 }
@@ -1353,7 +1392,7 @@
                 const mins = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
                 const secs = Math.floor((distance % (1000 * 60)) / 1000);
 
-                document.getElementById('countdown-timer').innerText = `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+                timerEl.innerText = `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
             }
 
             timerInterval = setInterval(updateTimer, 1000);
