@@ -287,8 +287,11 @@
                                     <i class="fa-solid fa-arrow-trend-up"></i>
                                 </div>
                                 <div>
-                                    <span class="text-slate-400 text-[11px] font-bold block mb-0.5">當前移動動態</span>
-                                    <span id="typhoon-move" class="text-sm font-semibold text-slate-200">----</span>
+                                    <span class="text-slate-400 text-[11px] font-bold block mb-0.5">當前移動動態與速度</span>
+                                    <div class="flex items-center gap-2">
+                                        <span id="typhoon-move" class="text-sm font-semibold text-slate-200">----</span>
+                                        <span id="typhoon-speed" class="text-[11px] text-orange-400 font-mono bg-orange-950/30 px-1.5 py-0.5 rounded border border-orange-500/20 font-bold">-- km/h</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -947,6 +950,7 @@
                 radius10: "---", 
                 position: "北緯 9.5 度，東經 162.0 度",
                 movement: "向西北進行",
+                speed: "15", // 新增的移動速度設定 (km/h)
                 countdownTargetDesc: "無活躍颱風",
                 countdownTargetTime: "" // 只要填寫指定時間，例如 "2026/06/28 15:00:00" 或 "2026-06-28 15:00"，系統即會以此時間自動倒數。
             },
@@ -1295,6 +1299,7 @@
             
             document.getElementById('typhoon-pos').innerText = TTMC_DATA.typhoon.position;
             document.getElementById('typhoon-move').innerText = TTMC_DATA.typhoon.movement;
+            document.getElementById('typhoon-speed').innerText = (TTMC_DATA.systemLifecycle !== "NONE" && TTMC_DATA.typhoon.speed) ? `${TTMC_DATA.typhoon.speed} km/h` : "-- km/h";
             document.getElementById('countdown-desc').innerText = TTMC_DATA.typhoon.countdownTargetDesc;
 
             if (TTMC_DATA.systemLifecycle === "NONE") {
@@ -1644,7 +1649,7 @@
                         </li>
                         <li>
                             <strong class="text-white block mb-0.5"><i class="fa-solid fa-mountain text-amber-500 mr-1"></i> 山區實況：</strong>
-                            雲量顯著增多，局部山區開始出現間歇性小雨.
+                            雲量顯著增多，局部山區開始出現間歇性小雨。
                         </li>
                     </ul>
                 `;
@@ -1689,7 +1694,7 @@
             satellite: { type: 'image', url: "https://www.cwa.gov.tw/Data/satellite/LCC_IR1_CR_2750/LCC_IR1_CR_2750.jpg", title: "🛰️ 東亞彩色紅外線衛星雲圖", source: "https://www.cwa.gov.tw/V8/C/W/OBS_Sat.html", desc: "抓取官方高解析原圖。白亮厚實處表示雲層發展旺盛，常伴隨深層對流與劇烈降雨。您可透過左側拉桿、滾動滑鼠滾輪或捏合螢幕放大，按住滑鼠直接滑動拖移檢視防情細節。" },
             satellite_enhanced: { type: 'image', url: "https://www.cwa.gov.tw/Data/satellite/LCC_IR1_MB_2750/LCC_IR1_MB_2750.jpg", title: "🌈 色調強化衛星雲圖", source: "https://www.cwa.gov.tw/V8/C/W/OBS_Sat.html?ts=1", desc: "抓取官方高解析原圖。利用色調強化技術突顯對流層頂部的極低溫區域（如紅色、紫色乃至黑色），可快速辨識颱風眼牆與強烈對流胞。" },
             typhoon_path: { type: 'iframe', url: "https://www.cwa.gov.tw/V8/C/P/Typhoon/TY_NEWS.html", title: "🌀 CWA 颱風預報路徑", source: "https://www.cwa.gov.tw/V8/C/P/Typhoon/TY_NEWS.html", desc: "官方颱風預報網頁直連。若目前無颱風，頁面將由氣象署安全顯示無資料，徹底解決破圖問題。" },
-            typhoon_warning: { type: 'iframe', url: "https://www.cwa.gov.tw/V8/C/P/Typhoon/TY_WARN.html", title: "🚨 CWA 海上陸上颱風警報單", source: "https://www.cwa.gov.tw/V8/C/P/Typhoon/TY_WARN.html", desc: "官方海陸警戒區網頁直連。未發布警報時將顯示無資訊。" },
+            typhoon_warning: { type: 'iframe', url: "https://www.cwa.gov.tw/V8/C/P/Typhoon/TY_WARN.html", title: "🚨 CWA 海陸颱風警報單", source: "https://www.cwa.gov.tw/V8/C/P/Typhoon/TY_WARN.html", desc: "官方海陸警戒區網頁直連。未發布警報時將顯示無資訊。" },
             rain_observe: { type: 'iframe', url: "https://www.cwa.gov.tw/V8/C/P/Rainfall/Rainfall_QZJ.html", title: "☔ 全台累積雨量觀測 (可自由調節)", source: "https://www.cwa.gov.tw/V8/C/P/Rainfall/Rainfall_QZJ.html", desc: "官方觀測雨量網頁直連。您可直接在下方網頁內自由切換今日累積、昨日累積或前日累積等間距圖層。" },
             qpf_forecast: { type: 'iframe', url: "https://www.cwa.gov.tw/V8/C/P/QPF.html", title: "🔮 CWA 定量降水預報 (QPF)", source: "https://www.cwa.gov.tw/V8/C/P/QPF.html", desc: "官方定量降水預報網頁直連。包含未來12/24小時及各時段降水預測區間，請直接在下方網頁內自由操作切換。" }
         };
