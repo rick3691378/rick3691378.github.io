@@ -234,30 +234,38 @@
                                 </div>
                             </div>
                             
-                            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-2">
+                            <!-- 颱風物理指標網格 (新增：中心最低氣壓) -->
+                            <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mt-2">
                                 <div class="bg-slate-900/60 border border-slate-880 px-3 py-3 rounded-xl text-center flex flex-col justify-center">
                                     <span class="text-slate-400 text-[10px] font-bold block mb-1">颱風強度</span>
-                                    <span id="typhoon-cwa-intensity" class="text-yellow-400 font-black text-xl">---</span>
+                                    <span id="typhoon-cwa-intensity" class="text-yellow-400 font-black text-sm md:text-base leading-tight">---</span>
+                                </div>
+                                <div class="bg-emerald-950/20 border border-emerald-500/20 px-3 py-3 rounded-xl text-center flex flex-col justify-center">
+                                    <span class="text-slate-400 text-[10px] font-bold block mb-1">最低氣壓</span>
+                                    <div>
+                                        <span id="typhoon-pressure" class="text-emerald-400 font-mono font-black text-lg md:text-xl">----</span>
+                                        <span class="text-[10px] text-slate-500 font-bold ml-0.5">hPa</span>
+                                    </div>
                                 </div>
                                 <div class="bg-red-950/20 border border-red-500/20 px-3 py-3 rounded-xl text-center flex flex-col justify-center">
                                     <span class="text-slate-400 text-[10px] font-bold block mb-1">中心最高風速</span>
                                     <div>
-                                        <span id="typhoon-wind" class="text-red-400 font-mono font-black text-xl">--.-</span>
+                                        <span id="typhoon-wind" class="text-red-400 font-mono font-black text-lg md:text-xl">--.-</span>
                                         <span class="text-[10px] text-slate-500 font-bold ml-0.5">m/s</span>
                                     </div>
                                 </div>
                                 <div class="bg-slate-900/60 border border-slate-880 px-3 py-3 rounded-xl text-center flex flex-col justify-center">
                                     <span class="text-slate-400 text-[10px] font-bold block mb-1">暴風七級半徑</span>
                                     <div>
-                                        <span id="typhoon-radius" class="text-blue-400 font-mono font-black text-xl">---</span>
-                                        <span class="text-[10px] text-slate-500 font-bold ml-0.5">公里</span>
+                                        <span id="typhoon-radius" class="text-blue-400 font-mono font-black text-lg md:text-xl">---</span>
+                                        <span class="text-[10px] text-slate-500 font-bold ml-0.5">KM</span>
                                     </div>
                                 </div>
                                 <div class="bg-slate-900/60 border border-slate-880 px-3 py-3 rounded-xl text-center flex flex-col justify-center">
                                     <span class="text-slate-400 text-[10px] font-bold block mb-1">暴風十級半徑</span>
                                     <div>
-                                        <span id="typhoon-radius10" class="text-purple-400 font-mono font-black text-xl">---</span>
-                                        <span class="text-[10px] text-slate-500 font-bold ml-0.5">公里</span>
+                                        <span id="typhoon-radius10" class="text-purple-400 font-mono font-black text-lg md:text-xl">---</span>
+                                        <span class="text-[10px] text-slate-500 font-bold ml-0.5">KM</span>
                                     </div>
                                 </div>
                             </div>
@@ -913,7 +921,7 @@
             systemLifecycle: "Generating", 
             publishTime: "2026/07/01 14:00",
             nextUpdateTime: "2026/07/01 20:00",
-            marqueeAdvisory: "【常態監測】TD10 蓄勢待發，預估 24 小時內發展為今年新颱風。",
+            marqueeAdvisory: "【常態監測】TD10 蓄勢待發，中心最低氣壓已降至 1004 hPa，預估 24 小時內發展為今年新颱風。",
             bulletinStrategyText: `
                 目前台灣周遭海域有2個熱帶性低氣壓或颱風發展。
                 <br><br>
@@ -930,6 +938,7 @@
                 id: "----",
                 ttmcLevel: "TTMC-1",
                 cwaIntensity: "熱帶性低氣壓", 
+                pressure: "1004", // 🌀 氣壓數設定 (hPa)
                 nationalWarning: "NONE", // 可設定為 "NONE"、"SEA"、"LAND"、"BOTH"
                 seaWarningActive: false, // 🌊 手動單獨控制【海上警報燈號】(true: 警戒中 / false: 常態準備)
                 landWarningActive: false, // ⛰️ 手動單獨控制【陸上警報燈號】(true: 警戒中 / false: 常態準備)
@@ -1030,7 +1039,7 @@
                         "中區": { color: "BLUE", districts: "太保、朴子、東石、水上、鹿草", note: "維持常態氣象觀測。" },
                         "南區": { color: "BLUE", districts: "布袋、義竹", note: "維持常態氣象觀測。" },
                         "進階高地(阿里山山區)": { color: "BLUE", districts: "阿里山鄉、梅山鄉、竹崎鄉", note: "維持常態氣象觀測，注意阿里山森林鐵路行車指標。" },
-                        "南部南投山區": { color: "BLUE", districts: "信義鄉全境", note: "維持常態氣象觀測，特別注意新中橫沿線及郡大林道路網。" }
+                        "南部山區": { color: "BLUE", districts: "信義鄉全境", note: "維持常態氣象觀測，特別注意新中橫沿線及郡大林道路網。" }
                     }
                 },
                 "臺南市": {
@@ -1277,8 +1286,9 @@
             document.getElementById('typhoon-id-badge').innerText = TTMC_DATA.systemLifecycle !== "NONE" ? `No. ${TTMC_DATA.typhoon.id}` : "SAFE";
             document.getElementById('typhoon-intensity-subtitle').innerText = TTMC_DATA.systemLifecycle !== "NONE" ? `${TTMC_DATA.typhoon.ttmcLevel} (系統生命週期: ${TTMC_DATA.systemLifecycle})` : "目前無颱風威脅，維持常態監測";
             
-            // 綁定強度與暴風半徑
+            // 綁定氣壓、強度與暴風半徑
             document.getElementById('typhoon-cwa-intensity').innerText = TTMC_DATA.typhoon.cwaIntensity;
+            document.getElementById('typhoon-pressure').innerText = TTMC_DATA.typhoon.pressure || "----";
             document.getElementById('typhoon-wind').innerText = TTMC_DATA.typhoon.centerWind;
             document.getElementById('typhoon-radius').innerText = TTMC_DATA.typhoon.radius7;
             document.getElementById('typhoon-radius10').innerText = TTMC_DATA.typhoon.radius10;
@@ -1634,7 +1644,7 @@
                         </li>
                         <li>
                             <strong class="text-white block mb-0.5"><i class="fa-solid fa-mountain text-amber-500 mr-1"></i> 山區實況：</strong>
-                            雲量顯著增多，局部山區開始出現間歇性小雨。
+                            雲量顯著增多，局部山區開始出現間歇性小雨.
                         </li>
                     </ul>
                 `;
