@@ -909,13 +909,13 @@
         // 🎛️ 後台資料手動設定區 (TTMC Admin Dashboard Data)
         // ==========================================
         const TTMC_DATA = {
-            activeWarning: "無", 
+            activeWarning: "TD10(09W)", 
             systemLifecycle: "NONE", 
-            publishTime: "2026/06/25 18:30",
-            nextUpdateTime: "2026/06/26 09:00",
-            marqueeAdvisory: "【常態監測】目前西北太平洋及南海海域無活躍之熱帶氣旋（颱風）發展。台灣各地天氣維持常態，請留意中央氣象署每日例行天氣預報。",
+            publishTime: "2026/07/01 14:00",
+            nextUpdateTime: "2026/07/01 20:00",
+            marqueeAdvisory: "【常態監測】TD10 蓄勢待發，預估 24 小時內發展為今年新颱風。",
             bulletinStrategyText: `
-                目前台灣周遭海域並無 any 熱帶性低氣壓或颱風發展。
+                目前台灣周遭海域有2個熱帶性低氣壓或颱風發展。
                 <br><br>
                 <strong>當前天氣概況與防護方針:</strong>
                 <ol class="list-decimal pl-5 space-y-1 mt-2 text-xs">
@@ -925,19 +925,19 @@
                 </ol>
             `,
             typhoon: {
-                nameZh: "---",
-                nameEn: "---",
+                nameZh: "TD10",
+                nameEn: "09W",
                 id: "----",
-                ttmcLevel: "無",
-                cwaIntensity: "無", 
+                ttmcLevel: "TTMC-1",
+                cwaIntensity: "熱帶性低氣壓", 
                 nationalWarning: "NONE", // 可設定為 "NONE"、"SEA"、"LAND"、"BOTH"
                 seaWarningActive: false, // 🌊 手動單獨控制【海上警報燈號】(true: 警戒中 / false: 常態準備)
                 landWarningActive: false, // ⛰️ 手動單獨控制【陸上警報燈號】(true: 警戒中 / false: 常態準備)
-                centerWind: "--.-",
+                centerWind: "15.0",
                 radius7: "---",
                 radius10: "---", 
-                position: "---",
-                movement: "---",
+                position: "北緯 9.5 度，東經 162.0 度",
+                movement: "向西北進行",
                 countdownTargetDesc: "無活躍颱風",
                 countdownTargetTime: "" // 只要填寫指定時間，例如 "2026/06/28 15:00:00" 或 "2026-06-28 15:00"，系統即會以此時間自動倒數。
             },
