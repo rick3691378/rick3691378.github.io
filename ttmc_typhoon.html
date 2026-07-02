@@ -922,11 +922,11 @@
         const TTMC_DATA = {
             activeWarning: "常態監測", 
             systemLifecycle: "Generating", 
-            publishTime: "2026/07/01 20:00",
-            nextUpdateTime: "2026/07/02 14:00",
-            marqueeAdvisory: "【常態監測】TD10 蓄勢待發，中心最低氣壓已降至 1000 hPa，預估 24 小時內發展為今年新颱風。",
+            publishTime: "2026/07/02 14:00",
+            nextUpdateTime: "2026/07/02 20:00",
+            marqueeAdvisory: "【常態監測】TD10 蓄勢待發，中心最低氣壓已降至 985 hPa，預估 36~72 小時內增強為強烈颱風。",
             bulletinStrategyText: `
-                目前台灣周遭海域有2個熱帶性低氣壓或颱風發展。
+                目前台灣周遭海域有2個熱帶性低氣壓和颱風發展。
                 <br><br>
                 <strong>當前天氣概況與防護方針:</strong>
                 <ol class="list-decimal pl-5 space-y-1 mt-2 text-xs">
@@ -936,21 +936,21 @@
                 </ol>
             `,
             typhoon: {
-                nameZh: "TD10",
-                nameEn: "09W",
-                id: "----",
-                ttmcLevel: "TTMC-1",
-                cwaIntensity: "熱帶性低氣壓", 
-                pressure: "1000", // 🌀 氣壓數設定 (hPa)
+                nameZh: "巴威",
+                nameEn: "BAVI",
+                id: "2610",
+                ttmcLevel: "TTMC-3",
+                cwaIntensity: "輕度颱風", 
+                pressure: "985", // 🌀 氣壓數設定 (hPa)
                 nationalWarning: "NONE", // 可設定為 "NONE"、"SEA"、"LAND"、"BOTH"
                 seaWarningActive: false, // 🌊 手動單獨控制【海上警報燈號】(true: 警戒中 / false: 常態準備)
                 landWarningActive: false, // ⛰️ 手動單獨控制【陸上警報燈號】(true: 警戒中 / false: 常態準備)
-                centerWind: "15.0",
-                radius7: "---",
+                centerWind: "25.0",
+                radius7: "150",
                 radius10: "---", 
-                position: "北緯 10.1 度，東經 161.5 度",
-                movement: "向西北進行",
-                speed: "9", // 新增的移動速度設定 (km/h)
+                position: "北緯 11.6 度，東經 158.8 度",
+                movement: "向西北西進行",
+                speed: "25", // 新增的移動速度設定 (km/h)
                 countdownTargetDesc: "無活躍颱風",
                 countdownTargetTime: "" // 只要填寫指定時間，例如 "2026/06/28 15:00:00" 或 "2026-06-28 15:00"，系統即會以此時間自動倒數。
             },
