@@ -922,8 +922,8 @@
         const TTMC_DATA = {
             activeWarning: "即時監測", 
             systemLifecycle: "Developing", 
-            publishTime: "2026/07/10 08:00",
-            nextUpdateTime: "2026/07/10 14:00",
+            publishTime: "2026/07/10 14:00",
+            nextUpdateTime: "2026/07/10 20:00",
             marqueeAdvisory: "【加強監測】巴威颱風 蓄勢待發，中心最低氣壓已降至 940 hPa， 目前已升格為TTMC-5 並持續增強當中 提醒已發布海陸上颱風警報，請注意最新的颱風消息 ",
             bulletinStrategyText: `
                 目前台灣周遭海域有1個熱帶性低氣壓和颱風發展。
@@ -941,14 +941,14 @@
                 id: "2609",
                 ttmcLevel: "TTMC-5",
                 cwaIntensity: "強烈颱風", 
-                pressure: "940", // 🌀 氣壓數設定 (hPa)
+                pressure: "945", // 🌀 氣壓數設定 (hPa)
                 nationalWarning: "BOTH", // 可設定為 "NONE"、"SEA"、"LAND"、"BOTH"
                 seaWarningActive: true, // 🌊 手動單獨控制【海上警報燈號】(true: 警戒中 / false: 常態準備)
                 landWarningActive: true, // ⛰️ 手動單獨控制【陸上警報燈號】(true: 警戒中 / false: 常態準備)
-                centerWind: "45.0",
+                centerWind: "43.0",
                 radius7: "380",
                 radius10: "180", 
-                position: "北緯 21.1 度，東經 127.3 度",
+                position: "北緯 22.3 度，東經 126.6 度",
                 movement: "向西北進行",
                 speed: "26", // 新增的移動速度設定 (km/h)
                 countdownTargetDesc: "預計彰化全區升格為黃色燈號",
@@ -1011,7 +1011,7 @@
                 "彰化縣": {
                     isComposite: true,
                     subZones: {
-                        "北區": { color: "BLUE", districts: "彰化、和美、伸港、線西、鹿港、花壇、秀水", note: "維持常態氣象觀測。" },
+                        "北區": { color: "YELLOW", districts: "彰化、和美、伸港、線西、鹿港、花壇、秀水", note: "維持常態氣象觀測。" },
                         "中區": { color: "BLUE", districts: "員林、大村、埔心、溪湖、福興、芳苑、埔鹽", note: "維持常態氣象觀測。" },
                         "南區": { color: "BLUE", districts: "田中、社頭、二水、北斗、二林、埤頭、溪州、竹塘、田尾、大城", note: "維持常態氣象觀測。" }
                     }
@@ -1114,7 +1114,7 @@
                 },
                 "澎湖縣": { isComposite: false, color: "BLUE", districts: "澎湖縣全區", note: "維持常態氣象觀測。" },
                 "金門縣": { isComposite: false, color: "BLUE", districts: "金門縣全區", note: "維持常態氣象觀測。" },
-                "連江縣": { isComposite: false, color: "BLUE", districts: "連江縣全區", note: "維持常態氣象觀測。" }
+                "連江縣": { isComposite: false, color: "YELLOW", districts: "連江縣全區", note: "維持常態氣象觀測。" }
             }
         };
 
