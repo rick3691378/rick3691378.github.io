@@ -922,9 +922,9 @@
         const TTMC_DATA = {
             activeWarning: "加強監測", 
             systemLifecycle: "Developing", 
-            publishTime: "2026/07/11 08:00",
-            nextUpdateTime: "2026/07/11 14:00",
-            marqueeAdvisory: "【加強監測】巴威颱風 蓄勢待發，中心最低氣壓已降至 950 hPa， 目前已升格為TTMC-4 並持續增強當中 提醒已發布海陸上颱風警報，請注意最新的颱風消息 ",
+            publishTime: "2026/07/11 14:00",
+            nextUpdateTime: "2026/07/11 20:00",
+            marqueeAdvisory: "【加強監測】巴威颱風 蓄勢待發，中心最低氣壓已降至 960 hPa， 目前已升格為TTMC-4 並持續增強當中 提醒已發布海陸上颱風警報，請注意最新的颱風消息 ",
             bulletinStrategyText: `
                 目前台灣周遭海域有1個熱帶性低氣壓和颱風發展。
                 <br><br>
@@ -941,16 +941,16 @@
                 id: "2609",
                 ttmcLevel: "TTMC-4",
                 cwaIntensity: "中度颱風", 
-                pressure: "950", // 🌀 氣壓數設定 (hPa)
+                pressure: "960", // 🌀 氣壓數設定 (hPa)
                 nationalWarning: "BOTH", // 可設定為 "NONE"、"SEA"、"LAND"、"BOTH"
                 seaWarningActive: true, // 🌊 手動單獨控制【海上警報燈號】(true: 警戒中 / false: 常態準備)
                 landWarningActive: true, // ⛰️ 手動單獨控制【陸上警報燈號】(true: 警戒中 / false: 常態準備)
-                centerWind: "40.0",
+                centerWind: "38.0",
                 radius7: "350",
                 radius10: "120", 
-                position: "北緯 25.5 度，東經 124.4 度",
-                movement: "向西北進行",
-                speed: "28轉25", // 新增的移動速度設定 (km/h)
+                position: "北緯 26.6 度，東經 123.2 度",
+                movement: "向北北西轉西北進行",
+                speed: "28轉23", // 新增的移動速度設定 (km/h)
                 countdownTargetDesc: "",
                 countdownTargetTime: "" // 只要填寫指定時間，例如 "2026/06/28 15:00:00" 或 "2026-06-28 15:00"，系統即會以此時間自動倒數。
             },
@@ -1001,9 +1001,9 @@
                 "臺中市": {
                     isComposite: true,
                     subZones: {
-                        "北區 (海線)": { color: "YELLOW", districts: "大甲、大安、清水、梧棲、沙鹿、龍井、大肚", note: "維持常態氣象觀測。" },
-                        "中區 (盆地都會核心)": { color: "YELLOW", districts: "中區、東區、南區、西區、北區、北屯、西屯、南屯、大雅、神岡、潭子", note: "維持常態氣象觀測。" },
-                        "南區 (屯區/近山)": { color: "YELLOW", districts: "太平、大里、霧峰、烏日", note: "維持常態氣象觀測。" },
+                        "北區 (海線)": { color: "BLUE", districts: "大甲、大安、清水、梧棲、沙鹿、龍井、大肚", note: "維持常態氣象觀測。" },
+                        "中區 (盆地都會核心)": { color: "BLUE", districts: "中區、東區、南區、西區、北區、北屯、西屯、南屯、大雅、神岡、潭子", note: "維持常態氣象觀測。" },
+                        "南區 (屯區/近山)": { color: "BLUE", districts: "太平、大里、霧峰、烏日", note: "維持常態氣象觀測。" },
                         "東區 (山城)": { color: "YELLOW", districts: "豐原、后里、石岡、東勢、新社", note: "維持常態氣象觀測。" },
                         "和平山區": { color: "YELLOW", districts: "和平區全境", note: "維持常態氣象觀測，嚴密注意中橫路段及梨山路況。" }
                     }
@@ -1094,11 +1094,11 @@
                     isComposite: true,
                     subZones: {
                         "北區": { color: "ORANGE", districts: "花蓮市、新城、吉安、壽豐", note: "維持常態氣象觀測。" },
-                        "中區": { color: "ORANGE", districts: "鳳林、光復、豐濱、瑞穗", note: "維持常態氣象觀測。" },
-                        "南區": { color: "YELLOW", districts: "玉里、富里", note: "維持常態氣象觀測。" },
+                        "中區": { color: "BLUE", districts: "鳳林、光復、豐濱、瑞穗", note: "維持常態氣象觀測。" },
+                        "南區": { color: "BLUE", districts: "玉里、富里", note: "維持常態氣象觀測。" },
                         "北部山區": { color: "ORANGE", districts: "秀林鄉全境", note: "維持常態氣象觀測，加強太魯閣口與蘇花鐵公路段防洪準備。" },
-                        "中部山區": { color: "ORANGE", districts: "萬榮鄉全境", note: "維持常態氣象觀測。" },
-                        "南部山區": { color: "YELLOW", districts: "卓溪鄉全境", note: "維持常態氣象觀測。" }
+                        "中部山區": { color: "BLUE", districts: "萬榮鄉全境", note: "維持常態氣象觀測。" },
+                        "南部山區": { color: "BLUE", districts: "卓溪鄉全境", note: "維持常態氣象觀測。" }
                     }
                 },
                 "臺東縣": {
