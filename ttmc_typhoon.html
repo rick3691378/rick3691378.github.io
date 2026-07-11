@@ -920,11 +920,11 @@
         // 🎛️ 後台資料手動設定區 (TTMC Admin Dashboard Data)
         // ==========================================
         const TTMC_DATA = {
-            activeWarning: "即時監測", 
+            activeWarning: "加強監測", 
             systemLifecycle: "Developing", 
-            publishTime: "2026/07/10 20:00",
-            nextUpdateTime: "2026/07/11 08:00",
-            marqueeAdvisory: "【加強監測】巴威颱風 蓄勢待發，中心最低氣壓已降至 940 hPa， 目前已升格為TTMC-5 並持續增強當中 提醒已發布海陸上颱風警報，請注意最新的颱風消息 ",
+            publishTime: "2026/07/11 08:00",
+            nextUpdateTime: "2026/07/11 14:00",
+            marqueeAdvisory: "【加強監測】巴威颱風 蓄勢待發，中心最低氣壓已降至 950 hPa， 目前已升格為TTMC-4 並持續增強當中 提醒已發布海陸上颱風警報，請注意最新的颱風消息 ",
             bulletinStrategyText: `
                 目前台灣周遭海域有1個熱帶性低氣壓和颱風發展。
                 <br><br>
@@ -939,63 +939,63 @@
                 nameZh: "巴威",
                 nameEn: "BAVI",
                 id: "2609",
-                ttmcLevel: "TTMC-5",
-                cwaIntensity: "強烈颱風", 
-                pressure: "945", // 🌀 氣壓數設定 (hPa)
+                ttmcLevel: "TTMC-4",
+                cwaIntensity: "中度颱風", 
+                pressure: "950", // 🌀 氣壓數設定 (hPa)
                 nationalWarning: "BOTH", // 可設定為 "NONE"、"SEA"、"LAND"、"BOTH"
                 seaWarningActive: true, // 🌊 手動單獨控制【海上警報燈號】(true: 警戒中 / false: 常態準備)
                 landWarningActive: true, // ⛰️ 手動單獨控制【陸上警報燈號】(true: 警戒中 / false: 常態準備)
-                centerWind: "43.0",
-                radius7: "380",
-                radius10: "180", 
-                position: "北緯 22.8 度，東經 126.0 度",
+                centerWind: "40.0",
+                radius7: "350",
+                radius10: "120", 
+                position: "北緯 25.5 度，東經 124.4 度",
                 movement: "向西北進行",
-                speed: "27轉30", // 新增的移動速度設定 (km/h)
+                speed: "28轉25", // 新增的移動速度設定 (km/h)
                 countdownTargetDesc: "",
                 countdownTargetTime: "" // 只要填寫指定時間，例如 "2026/06/28 15:00:00" 或 "2026-06-28 15:00"，系統即會以此時間自動倒數。
             },
             counties: {
-                "基隆市": { isComposite: false, color: "YELLOW", districts: "基隆市全區", note: "維持常態氣象觀測。" },
-                "臺北市": { isComposite: false, color: "YELLOW", districts: "臺北市全區", note: "維持常態氣象觀測。" },
+                "基隆市": { isComposite: false, color: "ORANGE", districts: "基隆市全區", note: "維持常態氣象觀測。" },
+                "臺北市": { isComposite: false, color: "ORANGE", districts: "臺北市全區", note: "維持常態氣象觀測。" },
                 "新北市": {
                     isComposite: true,
                     subZones: {
-                        "北區 (北海岸/林口)": { color: "YELLOW", districts: "淡水、三芝、石門、金山、萬里、八里、林口", note: "維持常態氣象觀測。" },
-                        "中區 (盆地都會)": { color: "YELLOW", districts: "板橋、三重、中和、永和、新莊、蘆洲、五股、泰山", note: "維持常態氣象觀測。" },
-                        "南區 (大漢溪/新店溪)": { color: "YELLOW", districts: "新店、深坑、石碇、土城、樹林、鶯歌", note: "維持常態氣象觀測。" },
-                        "東區 (東北角/汐止)": { color: "YELLOW", districts: "汐止、瑞芳、貢寮、雙溪、平溪", note: "維持常態氣象觀測。" },
-                        "西南山區": { color: "YELLOW", districts: "三峽區、烏來區", note: "維持常態氣象觀測，嚴密監控河道溢流。" },
-                        "東南山區": { color: "YELLOW", districts: "坪林區", note: "維持常態氣象觀測，密切注意北宜高架段陣風。" }
+                        "北區 (北海岸/林口)": { color: "ORANGE", districts: "淡水、三芝、石門、金山、萬里、八里、林口", note: "維持常態氣象觀測。" },
+                        "中區 (盆地都會)": { color: "ORANGE", districts: "板橋、三重、中和、永和、新莊、蘆洲、五股、泰山", note: "維持常態氣象觀測。" },
+                        "南區 (大漢溪/新店溪)": { color: "ORANGE", districts: "新店、深坑、石碇、土城、樹林、鶯歌", note: "維持常態氣象觀測。" },
+                        "東區 (東北角/汐止)": { color: "ORANGE", districts: "汐止、瑞芳、貢寮、雙溪、平溪", note: "維持常態氣象觀測。" },
+                        "西南山區": { color: "ORANGE", districts: "三峽區、烏來區", note: "維持常態氣象觀測，嚴密監控河道溢流。" },
+                        "東南山區": { color: "ORANGE", districts: "坪林區", note: "維持常態氣象觀測，密切注意北宜高架段陣風。" }
                     }
                 },
                 "桃園市": {
                     isComposite: true,
                     subZones: {
-                        "北區 (沿海台地)": { color: "YELLOW", districts: "大園、蘆竹、觀音、新屋", note: "維持常態氣象觀測。" },
-                        "中區": { color: "YELLOW", districts: "桃園、中壢、平鎮、八德", note: "維持常態氣象觀測。" },
-                        "南區 (近山丘陵)": { color: "YELLOW", districts: "楊梅、龜山、龍潭、大溪", note: "維持常態氣象觀測。" },
-                        "復興山區": { color: "YELLOW", districts: "復興區全境", note: "維持常態氣象觀測，防範邊坡零星落石。" }
+                        "北區 (沿海台地)": { color: "ORANGE", districts: "大園、蘆竹、觀音、新屋", note: "維持常態氣象觀測。" },
+                        "中區": { color: "ORANGE", districts: "桃園、中壢、平鎮、八德", note: "維持常態氣象觀測。" },
+                        "南區 (近山丘陵)": { color: "ORANGE", districts: "楊梅、龜山、龍潭、大溪", note: "維持常態氣象觀測。" },
+                        "復興山區": { color: "ORANGE", districts: "復興區全境", note: "維持常態氣象觀測，防範邊坡零星落石。" }
                     }
                 },
-                "新竹市": { isComposite: false, color: "YELLOW", districts: "新竹市全區", note: "維持常態氣象觀測。" },
+                "新竹市": { isComposite: false, color: "ORANGE", districts: "新竹市全區", note: "維持常態氣象觀測。" },
                 "新竹縣": {
                     isComposite: true,
                     subZones: {
-                        "北區": { color: "YELLOW", districts: "竹北、新豐、湖口", note: "維持常態氣象觀測。" },
-                        "中區": { color: "YELLOW", districts: "新埔、關西、芎林", note: "維持常態氣象觀測。" },
-                        "南區": { color: "YELLOW", districts: "竹東、橫山、北埔、寶山、峨眉", note: "維持常態氣象觀測。" },
-                        "北部山區": { color: "YELLOW", districts: "尖石鄉全境", note: "維持常態氣象觀測，注意山區午後局部陣雨。" },
-                        "南部山區": { color: "YELLOW", districts: "五峰鄉全境", note: "維持常態氣象觀測，山區聯外道路暢通。" }
+                        "北區": { color: "ORANGE", districts: "竹北、新豐、湖口", note: "維持常態氣象觀測。" },
+                        "中區": { color: "ORANGE", districts: "新埔、關西、芎林", note: "維持常態氣象觀測。" },
+                        "南區": { color: "ORANGE", districts: "竹東、橫山、北埔、寶山、峨眉", note: "維持常態氣象觀測。" },
+                        "北部山區": { color: "ORANGE", districts: "尖石鄉全境", note: "維持常態氣象觀測，注意山區午後局部陣雨。" },
+                        "南部山區": { color: "ORANGE", districts: "五峰鄉全境", note: "維持常態氣象觀測，山區聯外道路暢通。" }
                     }
                 },
                 "苗栗縣": {
                     isComposite: true,
                     subZones: {
-                        "北區": { color: "YELLOW", districts: "竹南、頭份、造橋、三灣", note: "維持常態氣象觀測。" },
-                        "中區": { color: "YELLOW", districts: "苗栗、後龍、頭屋、公館、西湖", note: "維持常態氣象觀測。" },
-                        "南區": { color: "YELLOW", districts: "通霄、苑裡、銅鑼、三義、大湖、卓蘭", note: "維持常態氣象觀測。" },
-                        "北部山區": { color: "YELLOW", districts: "南庄鄉、獅潭鄉", note: "維持常態氣象觀測，巡檢景區安全。" },
-                        "南部山區": { color: "YELLOW", districts: "泰安鄉全境", note: "維持常態氣象觀測，監控溫泉區地質動態。" }
+                        "北區": { color: "ORANGE", districts: "竹南、頭份、造橋、三灣", note: "維持常態氣象觀測。" },
+                        "中區": { color: "ORANGE", districts: "苗栗、後龍、頭屋、公館、西湖", note: "維持常態氣象觀測。" },
+                        "南區": { color: "ORANGE", districts: "通霄、苑裡、銅鑼、三義、大湖、卓蘭", note: "維持常態氣象觀測。" },
+                        "北部山區": { color: "ORANGE", districts: "南庄鄉、獅潭鄉", note: "維持常態氣象觀測，巡檢景區安全。" },
+                        "南部山區": { color: "ORANGE", districts: "泰安鄉全境", note: "維持常態氣象觀測，監控溫泉區地質動態。" }
                     }
                 },
                 "臺中市": {
@@ -1083,21 +1083,21 @@
                 "宜蘭縣": {
                     isComposite: true,
                     subZones: {
-                        "北區": { color: "YELLOW", districts: "頭城、礁溪、壯圍", note: "維持常態氣象觀測。" },
-                        "中區": { color: "YELLOW", districts: "宜蘭、員山", note: "維持常態氣象觀測。" },
-                        "南區": { color: "YELLOW", districts: "羅東、五結、冬山、蘇澳", note: "維持常態氣象觀測。" },
-                        "北宜蘭山區": { color: "YELLOW", districts: "大同鄉全境", note: "維持常態氣象觀測，注意中橫宜蘭支線、北橫東段路面完整。" },
-                        "南宜蘭山區": { color: "YELLOW", districts: "南澳鄉全境", note: "維持常態氣象觀測，密切注意蘇花路廊防護狀態。" }
+                        "北區": { color: "ORANGE", districts: "頭城、礁溪、壯圍", note: "維持常態氣象觀測。" },
+                        "中區": { color: "ORANGE", districts: "宜蘭、員山", note: "維持常態氣象觀測。" },
+                        "南區": { color: "ORANGE", districts: "羅東、五結、冬山、蘇澳", note: "維持常態氣象觀測。" },
+                        "北宜蘭山區": { color: "ORANGE", districts: "大同鄉全境", note: "維持常態氣象觀測，注意中橫宜蘭支線、北橫東段路面完整。" },
+                        "南宜蘭山區": { color: "ORANGE", districts: "南澳鄉全境", note: "維持常態氣象觀測，密切注意蘇花路廊防護狀態。" }
                     }
                 },
                 "花蓮縣": {
                     isComposite: true,
                     subZones: {
-                        "北區": { color: "YELLOW", districts: "花蓮市、新城、吉安、壽豐", note: "維持常態氣象觀測。" },
-                        "中區": { color: "YELLOW", districts: "鳳林、光復、豐濱、瑞穗", note: "維持常態氣象觀測。" },
+                        "北區": { color: "ORANGE", districts: "花蓮市、新城、吉安、壽豐", note: "維持常態氣象觀測。" },
+                        "中區": { color: "ORANGE", districts: "鳳林、光復、豐濱、瑞穗", note: "維持常態氣象觀測。" },
                         "南區": { color: "YELLOW", districts: "玉里、富里", note: "維持常態氣象觀測。" },
-                        "北部山區": { color: "YELLOW", districts: "秀林鄉全境", note: "維持常態氣象觀測，加強太魯閣口與蘇花鐵公路段防洪準備。" },
-                        "中部山區": { color: "YELLOW", districts: "萬榮鄉全境", note: "維持常態氣象觀測。" },
+                        "北部山區": { color: "ORANGE", districts: "秀林鄉全境", note: "維持常態氣象觀測，加強太魯閣口與蘇花鐵公路段防洪準備。" },
+                        "中部山區": { color: "ORANGE", districts: "萬榮鄉全境", note: "維持常態氣象觀測。" },
                         "南部山區": { color: "YELLOW", districts: "卓溪鄉全境", note: "維持常態氣象觀測。" }
                     }
                 },
