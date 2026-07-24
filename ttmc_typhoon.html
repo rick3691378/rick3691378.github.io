@@ -7,6 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght=300;400;500;600;700;800&family=Noto+Sans+TC:wght=300;400;500;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 
     <script>
         tailwind.config = {
@@ -64,6 +65,103 @@
             transition: transform 0.1s cubic-bezier(0.25, 1, 0.5, 1), filter 0.15s ease-out;
             transform-origin: center center;
         }
+
+        /* ==========================================================
+           TTMC 專業氣象儀表視覺強化層 (Pro Meteorological UI Layer)
+           說明：以下規則僅為「疊加式」視覺強化，完全不新增/刪除/更動
+           任何原始 HTML 結構、id、class 綁定邏輯或 JavaScript 行為，
+           所有互動、資料流、Tab 切換與圖層系統均維持原樣正常運作。
+           ========================================================== */
+
+        html { scroll-behavior: smooth; }
+
+        /* 背景：低調的氣象圖表格線 + 中心光暈，呈現「監測站主控室」氛圍 */
+        body {
+            background-color: #05070d;
+            background-image:
+                radial-gradient(ellipse 1100px 750px at 50% -8%, rgba(56, 100, 190, 0.16), transparent 62%),
+                radial-gradient(ellipse 900px 650px at 100% 105%, rgba(180, 60, 30, 0.07), transparent 60%),
+                repeating-linear-gradient(0deg, rgba(148,163,184,0.035) 0px, rgba(148,163,184,0.035) 1px, transparent 1px, transparent 42px),
+                repeating-linear-gradient(90deg, rgba(148,163,184,0.035) 0px, rgba(148,163,184,0.035) 1px, transparent 1px, transparent 42px);
+            background-attachment: fixed;
+        }
+
+        /* 數據 / 時間 / 座標一律採等寬技術字體，強化儀表讀值質感 */
+        .font-mono {
+            font-family: 'IBM Plex Mono', 'Consolas', monospace !important;
+            letter-spacing: 0.02em;
+        }
+
+        /* 標籤字距略微加寬，貼近官方氣象機關的資訊標示語彙 */
+        .tracking-wide, .tracking-wider {
+            letter-spacing: 0.115em !important;
+        }
+
+        /* Header：主控台化強化，底部加上如警報等級量表的漸層儀表線 */
+        header {
+            box-shadow: 0 1px 0 rgba(255,255,255,0.04) inset, 0 10px 34px -14px rgba(0,0,0,0.7);
+        }
+        header::after {
+            content: "";
+            position: absolute;
+            left: 0; right: 0; bottom: -1px;
+            height: 3px;
+            background: linear-gradient(90deg,
+                #10b981 0%, #10b981 20%,
+                #eab308 20%, #eab308 40%,
+                #f97316 40%, #f97316 60%,
+                #ef4444 60%, #ef4444 80%,
+                #a855f7 80%, #a855f7 100%);
+            opacity: 0.8;
+        }
+        header .animate-spin-slow {
+            box-shadow: 0 0 0 1px rgba(255,255,255,0.08), 0 0 26px rgba(239,68,68,0.4), inset 0 1px 1px rgba(255,255,255,0.3);
+        }
+
+        /* 面板卡片：淡化玻璃質感 + 頂緣微光線，貼近專業氣象主控面板風格 */
+        main .rounded-2xl.border,
+        main .rounded-2xl.shadow-xl,
+        main .rounded-2xl.shadow-2xl {
+            backdrop-filter: blur(8px);
+        }
+        main .bg-gradient-to-r.from-slate-900.to-slate-950,
+        main .bg-gradient-to-r.from-slate-950.to-slate-900 {
+            position: relative;
+        }
+        main .bg-gradient-to-r.from-slate-900.to-slate-950::before,
+        main .bg-gradient-to-r.from-slate-950.to-slate-900::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(96,165,250,0.45), transparent);
+        }
+
+        /* 颱風名稱主標：加入技術字距與微光暈，強化「主要示警指標」的視覺重量 */
+        #typhoon-name {
+            letter-spacing: 0.02em;
+            text-shadow: 0 2px 24px rgba(239, 68, 68, 0.28);
+        }
+
+        /* 按鈕：加入輕量按壓回饋，貼近實體儀表面板觸感 */
+        button:active {
+            transform: scale(0.97);
+        }
+
+        /* 捲軸：改為鋼藍色調，呼應整體監測主控台配色 */
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #22314f, #35486e);
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(180deg, #2c3e63, #44608f);
+        }
+
+        /* Glow 效果微幅強化，層次更立體 */
+        .glow-blue { box-shadow: 0 0 18px rgba(59, 130, 246, 0.2), inset 0 1px 0 rgba(255,255,255,0.03); }
+        .glow-yellow { box-shadow: 0 0 18px rgba(234, 179, 8, 0.2), inset 0 1px 0 rgba(255,255,255,0.03); }
+        .glow-orange { box-shadow: 0 0 18px rgba(249, 115, 22, 0.2), inset 0 1px 0 rgba(255,255,255,0.03); }
+        .glow-red { box-shadow: 0 0 20px rgba(239, 68, 68, 0.26), inset 0 1px 0 rgba(255,255,255,0.03); }
+        .glow-purple { box-shadow: 0 0 20px rgba(168, 85, 247, 0.3), inset 0 1px 0 rgba(255,255,255,0.03); }
     </style>
 </head>
 <body class="min-h-screen flex flex-col antialiased selection:bg-red-500 selection:text-white">
@@ -93,6 +191,10 @@
                     <div class="flex justify-between items-center text-slate-400">
                         <span class="font-bold"><i class="fa-regular fa-clock mr-1"></i> 發布時間</span>
                         <span id="modal-time" class="font-mono text-slate-200">--</span>
+                    </div>
+                    <div class="flex justify-between items-start gap-3 text-slate-400 pt-1 border-t border-slate-900/70 mt-1">
+                        <span class="font-bold shrink-0"><i class="fa-solid fa-location-dot mr-1 text-orange-400"></i> 影響地區</span>
+                        <span id="modal-area" class="font-bold text-orange-300 text-right">--</span>
                     </div>
                 </div>
                 <div class="space-y-2">
@@ -641,6 +743,40 @@
                     <button onclick="setCbsFilterMode('3hours')" id="btn-cbs-filter-3h" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-slate-200">
                         ⚡ 僅篩選 3 小時內即時警報
                     </button>
+                </div>
+            </div>
+
+            <div class="bg-slate-950 border border-slate-850 p-4 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div class="flex items-center space-x-2">
+                    <span class="w-2 h-2 rounded-full bg-orange-400"></span>
+                    <span class="text-xs text-slate-300 font-semibold"><i class="fa-solid fa-location-dot text-orange-400 mr-1"></i> 地區過濾器：依示警擷取到的 areaDesc（影響地區）欄位進行精準篩選。</span>
+                </div>
+                <div class="flex items-center gap-2 self-end sm:self-auto shrink-0">
+                    <select id="cbs-area-filter-select" onchange="setCbsAreaFilter(this.value)" class="bg-slate-900 border border-slate-800 text-slate-200 text-xs font-bold rounded-xl px-3 py-2.5 focus:outline-none focus:border-orange-500 cursor-pointer">
+                        <option value="all">🗺️ 全部地區（不限縣市）</option>
+                        <option value="台北市">臺北市</option>
+                        <option value="新北市">新北市</option>
+                        <option value="桃園市">桃園市</option>
+                        <option value="台中市">臺中市</option>
+                        <option value="台南市">臺南市</option>
+                        <option value="高雄市">高雄市</option>
+                        <option value="基隆市">基隆市</option>
+                        <option value="新竹市">新竹市</option>
+                        <option value="新竹縣">新竹縣</option>
+                        <option value="苗栗縣">苗栗縣</option>
+                        <option value="彰化縣">彰化縣</option>
+                        <option value="南投縣">南投縣</option>
+                        <option value="雲林縣">雲林縣</option>
+                        <option value="嘉義市">嘉義市</option>
+                        <option value="嘉義縣">嘉義縣</option>
+                        <option value="屏東縣">屏東縣</option>
+                        <option value="宜蘭縣">宜蘭縣</option>
+                        <option value="花蓮縣">花蓮縣</option>
+                        <option value="台東縣">臺東縣</option>
+                        <option value="澎湖縣">澎湖縣</option>
+                        <option value="金門縣">金門縣</option>
+                        <option value="連江縣">連江縣</option>
+                    </select>
                 </div>
             </div>
 
@@ -1956,6 +2092,7 @@
         let cbsCountdown = 180; // 3分鐘 = 180 秒
         let cbsTimerInterval = null;
         let cbsFilterMode = 'all'; 
+        let cbsAreaFilter = 'all'; // 地區(areaDesc)篩選：'all' 表示不限地區
 
         function showToastMessage(text) {
             const toast = document.getElementById('toast-message-box');
@@ -2057,11 +2194,12 @@
             logContainer.scrollTop = logContainer.scrollHeight;
         }
 
-        function openCbsModal(title, summary, time, author, type) {
+        function openCbsModal(title, summary, time, author, type, area) {
             document.getElementById('modal-title').innerText = title;
             document.getElementById('modal-summary').innerText = summary;
             document.getElementById('modal-time').innerText = time;
             document.getElementById('modal-author').innerText = author;
+            document.getElementById('modal-area').innerText = area || "未指定特定地區（可能為全國性示警）";
 
             const badge = document.getElementById('modal-badge');
             const actionBox = document.getElementById('modal-action-box');
@@ -2141,6 +2279,54 @@
                 addCbsLog("切換過濾器：僅篩選 3 小時內即時警報。");
             }
             fetchAndRenderCbsData();
+        }
+
+        // 依 areaDesc(影響地區)進行篩選：'all' 時不套用地區限制
+        function setCbsAreaFilter(area) {
+            cbsAreaFilter = area;
+            if (area === 'all') {
+                addCbsLog("切換地區過濾器：顯示全部地區警報。");
+            } else {
+                addCbsLog(`切換地區過濾器：僅顯示「${area}」相關警報。`);
+            }
+            fetchAndRenderCbsData();
+        }
+
+        // 台/臺 為同義異體字，統一標準化後再比對，避免因用字差異導致篩選漏判
+        function normalizeAreaText(str) {
+            return (str || "").replace(/臺/g, "台");
+        }
+
+        // 輔助函式：CAP/ATOM XML 常帶有 cap: 等命名空間前綴（如 <cap:areaDesc>），
+        // 純 getElementsByTagName("areaDesc") 可能因前綴而擷取不到，
+        // 這裡改以 localName 進行比對，確保能穩定擷取到地區等欄位資訊。
+        function getLocalTagText(parentNode, tagName) {
+            const direct = parentNode.getElementsByTagName(tagName);
+            if (direct.length > 0 && direct[0].textContent && direct[0].textContent.trim()) {
+                return direct[0].textContent.trim();
+            }
+            const allNodes = parentNode.getElementsByTagName('*');
+            for (let i = 0; i < allNodes.length; i++) {
+                const node = allNodes[i];
+                const localName = node.localName || node.tagName.split(':').pop();
+                if (localName === tagName && node.textContent && node.textContent.trim()) {
+                    return node.textContent.trim();
+                }
+            }
+            return null;
+        }
+
+        function getAllLocalTagTexts(parentNode, tagName) {
+            const results = [];
+            const allNodes = parentNode.getElementsByTagName('*');
+            for (let i = 0; i < allNodes.length; i++) {
+                const node = allNodes[i];
+                const localName = node.localName || node.tagName.split(':').pop();
+                if (localName === tagName && node.textContent && node.textContent.trim()) {
+                    results.push(node.textContent.trim());
+                }
+            }
+            return [...new Set(results)];
         }
 
         async function fetchAndRenderCbsData() {
@@ -2239,10 +2425,21 @@
                                        entry.getElementsByTagName("author")[0]?.getElementsByTagName("name")[0]?.textContent || 
                                        "國家災害防救科技中心";
 
+                        // 擷取影響地區 (areaDesc)：優先讀取 CAP 格式的 areaDesc 欄位（可能帶命名空間前綴），
+                        // 若一則示警內含多筆地區描述則合併呈現；查無資料時給予明確的預設說明。
+                        const areaDescList = getAllLocalTagTexts(entry, 'areaDesc');
+                        const areaText = areaDescList.length > 0
+                            ? areaDescList.join('、')
+                            : (getLocalTagText(entry, 'area') || "未指定特定地區（可能為全國性示警）");
+
                         const entryTime = new Date(updated);
                         const hoursDiff = (now - entryTime) / (1000 * 60 * 60);
 
                         if (cbsFilterMode === '3hours' && (hoursDiff < 0 || hoursDiff > 3)) {
+                            continue;
+                        }
+
+                        if (cbsAreaFilter !== 'all' && !normalizeAreaText(areaText).includes(normalizeAreaText(cbsAreaFilter))) {
                             continue;
                         }
 
@@ -2273,7 +2470,7 @@
                         const card = document.createElement("div");
                         card.className = `border p-4.5 rounded-xl space-y-2.5 transition-all duration-300 hover:scale-[1.02] hover:border-slate-700 cursor-pointer ${cardClass} ${glowStyle}`;
                         
-                        card.onclick = () => openCbsModal(title, summary, localTime, author, title.includes("地震") ? "強震速報" : (title.includes("雷雨") ? "大雷雨速報" : "示警公告"));
+                        card.onclick = () => openCbsModal(title, summary, localTime, author, title.includes("地震") ? "強震速報" : (title.includes("雷雨") ? "大雷雨速報" : "示警公告"), areaText);
                         
                         card.innerHTML = `
                             <div class="flex items-center justify-between gap-2 flex-wrap">
@@ -2287,6 +2484,10 @@
                                 <span>${title}</span>
                                 <i class="fa-solid fa-chevron-right text-xs text-slate-500"></i>
                             </h4>
+                            <div class="flex items-start gap-1.5 text-[11px] font-semibold text-orange-300/90">
+                                <i class="fa-solid fa-location-dot text-orange-400 mt-0.5 shrink-0"></i>
+                                <span class="line-clamp-1">${areaText}</span>
+                            </div>
                             <p class="text-xs leading-relaxed text-slate-300 font-medium line-clamp-2">${summary}</p>
                             <div class="text-[10px] text-slate-500 border-t border-slate-850/60 pt-2 flex justify-between font-bold">
                                 <span>發布來源：${author}</span>
@@ -2299,13 +2500,22 @@
                     }
 
                     if (renderedCount === 0) {
+                        const emptyMsg = cbsAreaFilter !== 'all'
+                            ? `目前查無「${cbsAreaFilter}」相關的細胞廣播警報。`
+                            : "目前 3 小時內無細胞廣播即時警報。";
                         container.innerHTML = `
                             <div class="text-center py-16 space-y-3">
                                 <i class="fa-solid fa-folder-open text-slate-600 text-4xl"></i>
-                                <p class="text-xs text-slate-400">目前 3 小時內無細胞廣播即時警報。</p>
-                                <button onclick="setCbsFilterMode('all')" class="bg-slate-900 border border-slate-800 text-white font-bold py-1.5 px-4 rounded-xl text-xs hover:bg-slate-800 transition-all">
-                                    顯示近期所有示警 (7天內)
-                                </button>
+                                <p class="text-xs text-slate-400">${emptyMsg}</p>
+                                <div class="flex items-center justify-center gap-2 flex-wrap">
+                                    <button onclick="setCbsFilterMode('all')" class="bg-slate-900 border border-slate-800 text-white font-bold py-1.5 px-4 rounded-xl text-xs hover:bg-slate-800 transition-all">
+                                        顯示近期所有示警 (7天內)
+                                    </button>
+                                    ${cbsAreaFilter !== 'all' ? `
+                                    <button onclick="document.getElementById('cbs-area-filter-select').value='all'; setCbsAreaFilter('all');" class="bg-slate-900 border border-orange-500/40 text-orange-300 font-bold py-1.5 px-4 rounded-xl text-xs hover:bg-slate-800 transition-all">
+                                        清除地區篩選
+                                    </button>` : ''}
+                                </div>
                             </div>
                         `;
                     } else {
