@@ -966,10 +966,9 @@
                 </div>
 
                 <div class="space-y-3">
-                    <h3 class="text-lg font-bold text-red-400 border-l-4 border-red-500 pl-3">第三章：縣市顏色風球與預警連動系統(此為本機構制定之，是以便觀察之用途並無預測等)</h3>
+                    <h3 class="text-lg font-bold text-red-400 border-l-4 border-red-500 pl-3">第三章：縣市顏色風球與預警連動系統</h3>
                     <p class="text-sm text-slate-300 leading-relaxed">
                         以「縣市」為發布單位，跳脫傳統死板的暴風圈距離限制。特別採用地理分區對應技術，將地形屏障、高地土石潛勢區、迎風面與背風面獨立為單一預警單位（如個別山地鄉鎮、沿海平原、都會中心等），進一步實施精準防颱調度。
-                        此為本機構制定之，是以便觀察之用途並無預測等，觀察之時以中央氣象署之預報為基準，做出觀測燈號。
                     </p>
                     <div class="overflow-x-auto rounded-xl border border-slate-850">
                         <table class="w-full text-left border-collapse text-xs md:text-sm">
@@ -2453,50 +2452,71 @@
                             localTime = entryTime.toLocaleString('zh-TW', { timeZone: 'Asia/Taipei' });
                         } catch(e) {}
 
-                        let cardClass = "bg-slate-900/50 border-slate-800 text-slate-300";
+                        let cardClass = "bg-slate-900/40 border-slate-800 text-slate-300";
                         let badgeClass = "bg-slate-800 text-slate-300 border-slate-700";
+                        let accentBar = "bg-slate-600";
+                        let typeIcon = "fa-triangle-exclamation";
+                        let typeLabel = "一般示警";
                         if (title.includes("地震") || title.includes("Earthquake")) {
                             cardClass = "bg-red-950/20 border-red-500/30 text-red-400";
                             badgeClass = "bg-red-600 text-white border-red-500";
+                            accentBar = "bg-red-500";
+                            typeIcon = "fa-house-crack";
+                            typeLabel = "強震速報";
                         } else if (title.includes("大雷雨") || title.includes("暴雨") || title.includes("Rain") || title.includes("雷雨")) {
                             cardClass = "bg-orange-950/20 border-orange-500/30 text-orange-400";
                             badgeClass = "bg-orange-500 text-slate-950 border-orange-400";
+                            accentBar = "bg-orange-500";
+                            typeIcon = "fa-cloud-showers-heavy";
+                            typeLabel = "大雷雨示警";
                         } else if (title.includes("土石流") || title.includes("崩塌")) {
                             cardClass = "bg-yellow-950/20 border-yellow-500/30 text-yellow-400";
                             badgeClass = "bg-yellow-500 text-slate-950 border-yellow-400";
+                            accentBar = "bg-yellow-500";
+                            typeIcon = "fa-mountain";
+                            typeLabel = "土石流示警";
                         } else if (title.includes("放水") || title.includes("溢洪") || title.includes("洩洪") || title.includes("放流")) {
                             cardClass = "bg-blue-950/20 border-blue-500/30 text-blue-400";
                             badgeClass = "bg-blue-600 text-white border-blue-500";
+                            accentBar = "bg-blue-500";
+                            typeIcon = "fa-water";
+                            typeLabel = "水庫放流示警";
                         }
 
                         const isRecent = hoursDiff >= 0 && hoursDiff <= 3;
                         const glowStyle = isRecent ? 'glow-orange border-orange-500/50 scale-[1.01]' : '';
 
                         const card = document.createElement("div");
-                        card.className = `border p-4.5 rounded-xl space-y-2.5 transition-all duration-300 hover:scale-[1.02] hover:border-slate-700 cursor-pointer ${cardClass} ${glowStyle}`;
+                        card.className = `relative overflow-hidden border pl-4.5 pr-4 py-4 rounded-xl space-y-2.5 transition-all duration-300 hover:scale-[1.015] hover:border-slate-700 cursor-pointer ${cardClass} ${glowStyle}`;
                         
                         card.onclick = () => openCbsModal(title, summary, localTime, author, title.includes("地震") ? "強震速報" : (title.includes("雷雨") ? "大雷雨速報" : "示警公告"), areaText);
                         
                         card.innerHTML = `
-                            <div class="flex items-center justify-between gap-2 flex-wrap">
-                                <div class="flex items-center gap-1.5">
-                                    <span class="text-[9px] font-black px-1.5 py-0.5 rounded tracking-wide border ${badgeClass}">CBS ATOM XML</span>
-                                    ${isRecent ? `<span class="bg-red-600 text-white text-[9px] px-1 py-0.2 rounded font-black animate-pulse"><i class="fa-solid fa-bolt mr-0.5"></i>3小時內即時</span>` : ''}
+                            <div class="absolute left-0 top-0 bottom-0 w-[3px] ${accentBar}"></div>
+                            <div class="flex items-start justify-between gap-2">
+                                <div class="flex items-center gap-2 min-w-0">
+                                    <span class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 border ${badgeClass}">
+                                        <i class="fa-solid ${typeIcon} text-[11px]"></i>
+                                    </span>
+                                    <div class="flex items-center gap-1.5 flex-wrap min-w-0">
+                                        <span class="text-[10px] font-black tracking-wide uppercase text-slate-300">${typeLabel}</span>
+                                        ${isRecent ? `<span class="bg-red-600 text-white text-[9px] px-1.5 py-0.5 rounded-full font-black animate-pulse flex items-center gap-0.5 shrink-0"><i class="fa-solid fa-bolt"></i>即時</span>` : ''}
+                                    </div>
                                 </div>
-                                <span class="text-[11px] text-slate-500 font-mono font-bold">${localTime}</span>
+                                <span class="text-[10px] text-slate-500 font-mono font-bold shrink-0">${localTime}</span>
                             </div>
-                            <h4 class="text-sm font-black text-slate-100 flex items-center justify-between gap-1">
+                            <h4 class="text-sm font-black text-slate-100 leading-snug flex items-start justify-between gap-2">
                                 <span>${title}</span>
-                                <i class="fa-solid fa-chevron-right text-xs text-slate-500"></i>
+                                <i class="fa-solid fa-chevron-right text-[10px] text-slate-600 mt-1 shrink-0"></i>
                             </h4>
-                            <div class="flex items-start gap-1.5 text-[11px] font-semibold text-orange-300/90">
-                                <i class="fa-solid fa-location-dot text-orange-400 mt-0.5 shrink-0"></i>
-                                <span class="line-clamp-1">${areaText}</span>
+                            <div class="inline-flex items-center gap-1.5 bg-slate-950/60 border border-slate-800 rounded-full px-2.5 py-1 max-w-full">
+                                <i class="fa-solid fa-location-dot text-orange-400 text-[10px] shrink-0"></i>
+                                <span class="text-[11px] font-semibold text-orange-300/90 truncate">${areaText}</span>
                             </div>
-                            <p class="text-xs leading-relaxed text-slate-300 font-medium line-clamp-2">${summary}</p>
-                            <div class="text-[10px] text-slate-500 border-t border-slate-850/60 pt-2 flex justify-between font-bold">
-                                <span>發布來源：${author}</span>
-                                <span class="text-emerald-400 font-mono flex items-center gap-1"><i class="fa-solid fa-file-invoice"></i> 點擊查閱詳情</span>
+                            <p class="text-xs leading-relaxed text-slate-300/90 font-medium line-clamp-2">${summary}</p>
+                            <div class="text-[10px] text-slate-500 border-t border-slate-850/60 pt-2 flex justify-between items-center font-bold">
+                                <span class="truncate">發布來源：${author}</span>
+                                <span class="text-emerald-400 font-mono flex items-center gap-1 shrink-0"><i class="fa-solid fa-file-invoice"></i> 點擊查閱詳情</span>
                             </div>
                         `;
                         container.appendChild(card);
