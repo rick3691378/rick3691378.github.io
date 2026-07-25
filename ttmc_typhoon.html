@@ -167,6 +167,25 @@
         .glow-red { box-shadow: 0 0 20px rgba(239, 68, 68, 0.26), inset 0 1px 0 rgba(255,255,255,0.03); }
         .glow-purple { box-shadow: 0 0 20px rgba(168, 85, 247, 0.3), inset 0 1px 0 rgba(255,255,255,0.03); }
     </style>
+    <!-- ============================================================
+         推播通知 (Web Push) — OneSignal
+         說明：即使使用者沒有開著這個網頁，只要瀏覽器曾經授權過通知權限，
+         有新的災防告警時依然能收到系統通知。
+         使用前請將下方 appId 換成你自己在 OneSignal 申請到的 App ID
+         （這個 ID 是公開的，可以放在前端，不是機密資訊）。
+         完整申請與設定步驟請見附上的 README。
+         ============================================================ -->
+    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+    <script>
+        window.OneSignalDeferred = window.OneSignalDeferred || [];
+        OneSignalDeferred.push(async function (OneSignal) {
+            await OneSignal.init({
+                appId: "請替換成你的-ONESIGNAL-APP-ID",
+                notifyButton: { enable: true },
+                allowLocalhostAsSecureOrigin: true,
+            });
+        });
+    </script>
 </head>
 <body class="min-h-screen flex flex-col antialiased selection:bg-red-500 selection:text-white">
 
@@ -247,29 +266,29 @@
     </header>
 
     <div class="bg-slate-950 border-b border-slate-850 px-4">
-        <div class="max-w-7xl mx-auto flex flex-wrap gap-1 py-2">
-            <button onclick="switchTab('tab-bulletin')" id="btn-tab-bulletin" class="flex-1 md:flex-initial px-4 py-2.5 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-all duration-200 bg-red-600 text-white shadow-md">
-                <i class="fa-solid fa-bullhorn text-xs"></i>
+        <div class="max-w-7xl mx-auto grid grid-cols-2 sm:grid-cols-3 md:flex md:flex-wrap gap-2 py-3">
+            <button onclick="switchTab('tab-bulletin')" id="btn-tab-bulletin" class="w-full md:w-auto md:flex-initial px-3 py-3 md:py-2.5 rounded-lg text-[13px] sm:text-sm font-bold flex flex-col md:flex-row items-center justify-center gap-1 md:gap-2 text-center leading-tight transition-all duration-200 bg-red-600 text-white shadow-md shadow-red-900/30 border border-red-500/50">
+                <i class="fa-solid fa-bullhorn text-base md:text-xs"></i>
                 <span>最新風雨警報</span>
             </button>
-            <button onclick="switchTab('tab-county')" id="btn-tab-county" class="flex-1 md:flex-initial px-4 py-2.5 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-all duration-200 text-slate-400 hover:text-slate-200 hover:bg-slate-900/60">
-                <i class="fa-solid fa-map-pin text-xs"></i>
+            <button onclick="switchTab('tab-county')" id="btn-tab-county" class="w-full md:w-auto md:flex-initial px-3 py-3 md:py-2.5 rounded-lg text-[13px] sm:text-sm font-bold flex flex-col md:flex-row items-center justify-center gap-1 md:gap-2 text-center leading-tight transition-all duration-200 text-slate-300 bg-slate-900/60 border border-slate-800 hover:text-white hover:bg-slate-800 hover:border-slate-700">
+                <i class="fa-solid fa-map-pin text-base md:text-xs"></i>
                 <span>各縣市風球看板</span>
             </button>
-            <button onclick="switchTab('tab-cwa')" id="btn-tab-cwa" class="flex-1 md:flex-initial px-4 py-2.5 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-all duration-200 text-slate-400 hover:text-slate-200 hover:bg-slate-900/60">
-                <i class="fa-solid fa-satellite text-xs text-blue-500"></i>
+            <button onclick="switchTab('tab-cwa')" id="btn-tab-cwa" class="w-full md:w-auto md:flex-initial px-3 py-3 md:py-2.5 rounded-lg text-[13px] sm:text-sm font-bold flex flex-col md:flex-row items-center justify-center gap-1 md:gap-2 text-center leading-tight transition-all duration-200 text-slate-300 bg-slate-900/60 border border-slate-800 hover:text-white hover:bg-slate-800 hover:border-slate-700">
+                <i class="fa-solid fa-satellite text-base md:text-xs text-blue-500"></i>
                 <span>即時氣象圖資 (CWA)</span>
             </button>
-            <button onclick="switchTab('tab-obs')" id="btn-tab-obs" class="flex-1 md:flex-initial px-4 py-2.5 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-all duration-200 text-slate-400 hover:text-slate-200 hover:bg-slate-900/60">
-                <i class="fa-solid fa-ranking-star text-xs text-yellow-500"></i>
+            <button onclick="switchTab('tab-obs')" id="btn-tab-obs" class="w-full md:w-auto md:flex-initial px-3 py-3 md:py-2.5 rounded-lg text-[13px] sm:text-sm font-bold flex flex-col md:flex-row items-center justify-center gap-1 md:gap-2 text-center leading-tight transition-all duration-200 text-slate-300 bg-slate-900/60 border border-slate-800 hover:text-white hover:bg-slate-800 hover:border-slate-700">
+                <i class="fa-solid fa-ranking-star text-base md:text-xs text-yellow-500"></i>
                 <span>CWA 測站排名</span>
             </button>
-            <button onclick="switchTab('tab-cbs')" id="btn-tab-cbs" class="flex-1 md:flex-initial px-4 py-2.5 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-all duration-200 text-slate-400 hover:text-slate-200 hover:bg-slate-900/60">
-                <i class="fa-solid fa-triangle-exclamation text-xs text-orange-500"></i>
+            <button onclick="switchTab('tab-cbs')" id="btn-tab-cbs" class="w-full md:w-auto md:flex-initial px-3 py-3 md:py-2.5 rounded-lg text-[13px] sm:text-sm font-bold flex flex-col md:flex-row items-center justify-center gap-1 md:gap-2 text-center leading-tight transition-all duration-200 text-slate-300 bg-slate-900/60 border border-slate-800 hover:text-white hover:bg-slate-800 hover:border-slate-700">
+                <i class="fa-solid fa-triangle-exclamation text-base md:text-xs text-orange-500"></i>
                 <span>災防告警 (即時資料)</span>
             </button>
-            <button onclick="switchTab('tab-system')" id="btn-tab-system" class="flex-1 md:flex-initial px-4 py-2.5 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-all duration-200 text-slate-400 hover:text-slate-200 hover:bg-slate-900/60">
-                <i class="fa-solid fa-scale-balanced text-xs"></i>
+            <button onclick="switchTab('tab-system')" id="btn-tab-system" class="w-full md:w-auto md:flex-initial px-3 py-3 md:py-2.5 rounded-lg text-[13px] sm:text-sm font-bold flex flex-col md:flex-row items-center justify-center gap-1 md:gap-2 text-center leading-tight transition-all duration-200 text-slate-300 bg-slate-900/60 border border-slate-800 hover:text-white hover:bg-slate-800 hover:border-slate-700">
+                <i class="fa-solid fa-scale-balanced text-base md:text-xs"></i>
                 <span>TTMC 規章制度</span>
             </button>
         </div>
@@ -1807,9 +1826,9 @@
                 const btn = document.getElementById(`btn-tab-${t}`);
                 if (btn) {
                     if (`tab-${t}` === tabId) {
-                        btn.className = "flex-1 md:flex-initial px-4 py-2.5 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-all duration-200 bg-red-600 text-white shadow-md";
+                        btn.className = "w-full md:w-auto md:flex-initial px-3 py-3 md:py-2.5 rounded-lg text-[13px] sm:text-sm font-bold flex flex-col md:flex-row items-center justify-center gap-1 md:gap-2 text-center leading-tight transition-all duration-200 bg-red-600 text-white shadow-md shadow-red-900/30 border border-red-500/50";
                     } else {
-                        btn.className = "flex-1 md:flex-initial px-4 py-2.5 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-all duration-200 text-slate-400 hover:text-slate-200 hover:bg-slate-900/60";
+                        btn.className = "w-full md:w-auto md:flex-initial px-3 py-3 md:py-2.5 rounded-lg text-[13px] sm:text-sm font-bold flex flex-col md:flex-row items-center justify-center gap-1 md:gap-2 text-center leading-tight transition-all duration-200 text-slate-300 bg-slate-900/60 border border-slate-800 hover:text-white hover:bg-slate-800 hover:border-slate-700";
                     }
                 }
             });
@@ -2452,71 +2471,70 @@
                             localTime = entryTime.toLocaleString('zh-TW', { timeZone: 'Asia/Taipei' });
                         } catch(e) {}
 
-                        let cardClass = "bg-slate-900/40 border-slate-800 text-slate-300";
-                        let badgeClass = "bg-slate-800 text-slate-300 border-slate-700";
+                        let iconBg = "bg-slate-500/15";
+                        let iconText = "text-slate-300";
                         let accentBar = "bg-slate-600";
                         let typeIcon = "fa-triangle-exclamation";
                         let typeLabel = "一般示警";
                         if (title.includes("地震") || title.includes("Earthquake")) {
-                            cardClass = "bg-red-950/20 border-red-500/30 text-red-400";
-                            badgeClass = "bg-red-600 text-white border-red-500";
+                            iconBg = "bg-red-500/15";
+                            iconText = "text-red-400";
                             accentBar = "bg-red-500";
                             typeIcon = "fa-house-crack";
                             typeLabel = "強震速報";
                         } else if (title.includes("大雷雨") || title.includes("暴雨") || title.includes("Rain") || title.includes("雷雨")) {
-                            cardClass = "bg-orange-950/20 border-orange-500/30 text-orange-400";
-                            badgeClass = "bg-orange-500 text-slate-950 border-orange-400";
+                            iconBg = "bg-orange-500/15";
+                            iconText = "text-orange-400";
                             accentBar = "bg-orange-500";
                             typeIcon = "fa-cloud-showers-heavy";
                             typeLabel = "大雷雨示警";
                         } else if (title.includes("土石流") || title.includes("崩塌")) {
-                            cardClass = "bg-yellow-950/20 border-yellow-500/30 text-yellow-400";
-                            badgeClass = "bg-yellow-500 text-slate-950 border-yellow-400";
+                            iconBg = "bg-yellow-500/15";
+                            iconText = "text-yellow-400";
                             accentBar = "bg-yellow-500";
                             typeIcon = "fa-mountain";
                             typeLabel = "土石流示警";
                         } else if (title.includes("放水") || title.includes("溢洪") || title.includes("洩洪") || title.includes("放流")) {
-                            cardClass = "bg-blue-950/20 border-blue-500/30 text-blue-400";
-                            badgeClass = "bg-blue-600 text-white border-blue-500";
+                            iconBg = "bg-blue-500/15";
+                            iconText = "text-blue-400";
                             accentBar = "bg-blue-500";
                             typeIcon = "fa-water";
                             typeLabel = "水庫放流示警";
                         }
 
                         const isRecent = hoursDiff >= 0 && hoursDiff <= 3;
-                        const glowStyle = isRecent ? 'glow-orange border-orange-500/50 scale-[1.01]' : '';
+                        const glowStyle = isRecent ? 'ring-1 ring-orange-500/30' : '';
 
                         const card = document.createElement("div");
-                        card.className = `relative overflow-hidden border pl-4.5 pr-4 py-4 rounded-xl space-y-2.5 transition-all duration-300 hover:scale-[1.015] hover:border-slate-700 cursor-pointer ${cardClass} ${glowStyle}`;
+                        card.className = `group relative overflow-hidden border pl-5 pr-4 py-4 rounded-2xl space-y-3 transition-all duration-300 hover:border-slate-700 hover:bg-slate-900/70 cursor-pointer bg-slate-900/30 border-slate-800/80 ${glowStyle}`;
                         
                         card.onclick = () => openCbsModal(title, summary, localTime, author, title.includes("地震") ? "強震速報" : (title.includes("雷雨") ? "大雷雨速報" : "示警公告"), areaText);
                         
                         card.innerHTML = `
                             <div class="absolute left-0 top-0 bottom-0 w-[3px] ${accentBar}"></div>
-                            <div class="flex items-start justify-between gap-2">
-                                <div class="flex items-center gap-2 min-w-0">
-                                    <span class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 border ${badgeClass}">
-                                        <i class="fa-solid ${typeIcon} text-[11px]"></i>
+                            <div class="flex items-center justify-between gap-3">
+                                <div class="flex items-center gap-2.5 min-w-0">
+                                    <span class="w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${iconBg}">
+                                        <i class="fa-solid ${typeIcon} text-[13px] ${iconText}"></i>
                                     </span>
                                     <div class="flex items-center gap-1.5 flex-wrap min-w-0">
-                                        <span class="text-[10px] font-black tracking-wide uppercase text-slate-300">${typeLabel}</span>
-                                        ${isRecent ? `<span class="bg-red-600 text-white text-[9px] px-1.5 py-0.5 rounded-full font-black animate-pulse flex items-center gap-0.5 shrink-0"><i class="fa-solid fa-bolt"></i>即時</span>` : ''}
+                                        <span class="text-[11px] font-semibold text-slate-400">${typeLabel}</span>
+                                        ${isRecent ? `<span class="inline-flex items-center gap-1 text-[9px] font-bold text-orange-400 shrink-0"><span class="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse"></span>即時</span>` : ''}
                                     </div>
                                 </div>
-                                <span class="text-[10px] text-slate-500 font-mono font-bold shrink-0">${localTime}</span>
+                                <span class="text-[11px] text-slate-500 font-mono shrink-0">${localTime}</span>
                             </div>
-                            <h4 class="text-sm font-black text-slate-100 leading-snug flex items-start justify-between gap-2">
-                                <span>${title}</span>
-                                <i class="fa-solid fa-chevron-right text-[10px] text-slate-600 mt-1 shrink-0"></i>
-                            </h4>
-                            <div class="inline-flex items-center gap-1.5 bg-slate-950/60 border border-slate-800 rounded-full px-2.5 py-1 max-w-full">
-                                <i class="fa-solid fa-location-dot text-orange-400 text-[10px] shrink-0"></i>
-                                <span class="text-[11px] font-semibold text-orange-300/90 truncate">${areaText}</span>
+                            <h4 class="text-[15px] font-semibold text-slate-100 leading-snug pr-1">${title}</h4>
+                            <div class="flex items-center gap-1.5 text-[12px] text-slate-400 min-w-0">
+                                <i class="fa-solid fa-location-dot text-[10px] ${iconText} shrink-0"></i>
+                                <span class="truncate">${areaText}</span>
                             </div>
-                            <p class="text-xs leading-relaxed text-slate-300/90 font-medium line-clamp-2">${summary}</p>
-                            <div class="text-[10px] text-slate-500 border-t border-slate-850/60 pt-2 flex justify-between items-center font-bold">
-                                <span class="truncate">發布來源：${author}</span>
-                                <span class="text-emerald-400 font-mono flex items-center gap-1 shrink-0"><i class="fa-solid fa-file-invoice"></i> 點擊查閱詳情</span>
+                            <p class="text-[12.5px] leading-relaxed text-slate-400 line-clamp-2">${summary}</p>
+                            <div class="flex items-center justify-between gap-2 pt-2.5 mt-1 border-t border-slate-800/60">
+                                <span class="text-[11px] text-slate-500 truncate">${author}</span>
+                                <span class="text-[11px] font-medium text-slate-400 flex items-center gap-1 shrink-0 group-hover:text-orange-400 transition-colors">
+                                    查看詳情 <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                                </span>
                             </div>
                         `;
                         container.appendChild(card);
